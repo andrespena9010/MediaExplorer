@@ -1,4 +1,4 @@
-package com.exaple.mediaexplorer.ui.views
+package com.exaple.mediaexplorer.ui.custom
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

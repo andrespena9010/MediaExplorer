@@ -10,7 +10,6 @@ import com.exaple.mediaexplorer.data.repository.Repository
 import com.exaple.mediaexplorer.ui.render.PrincipalPdfRenderer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +34,7 @@ open class PdfViewModelClass(
     /**
      * Estado del PDF seleccionado.
      */
-    private val _selectedPDF = MutableStateFlow(PDF(url = ""))
+    private val _selectedPDF = MutableStateFlow(PDF())
     val selectedPDF: StateFlow<PDF> = _selectedPDF.asStateFlow()
 
     /**
@@ -68,57 +67,13 @@ open class PdfViewModelClass(
      */
     fun setSelectedPDF(pdf: PDF) {
         _selectedPDF.update { pdf }
-        saveCopy()
-    }
-
-    /**
-     * Guarda una copia del PDF seleccionado.
-     *
-     * Esta función verifica si el PDF ya existe en el repositorio. Si no existe, lo descarga y lo guarda.
-     * Luego, abre el PDF con [pdfRenderer] y actualiza los estados de carga y páginas del PDF.
-     */
-    private fun saveCopy() {
         _loading.update { true }
-
-        viewModelScope.launch {
-            val uri = repository.exist(selectedPDF.value.fileName)
-
-            if (uri == null) {
-                val setUriResponse = async {
-                    repository.downLoadDocument(
-                        url = selectedPDF.value.url,
-                        fileName = selectedPDF.value.fileName
-                    )
-                }.await()
-                if (setUriResponse.savePDFResponse.uri != null) {
-                    _selectedPDF.update { current ->
-                        current.copy(
-                            uri = setUriResponse.savePDFResponse.uri
-                        )
-                    }
-                    val file = setUriResponse.savePDFResponse.uri!!.toFile()
-                    pdfRenderer = PrincipalPdfRenderer( file )
-                    pdfName = file.name
-                }
-            } else {
-                _selectedPDF.update { current ->
-                    current.copy(
-                        uri = uri
-                    )
-                }
-                val file = uri.toFile()
-                pdfRenderer = PrincipalPdfRenderer( file )
-                pdfName = file.name
-            }
-
-            pagesCount = pdfRenderer.pageCount()
-            _pdfPages.update { List<PdfPage>( pagesCount ){ PdfPage( bitmap = null, pageLoading = true, cachedBitmap = false) } }
-
-            _loading.update { false }
-
-            renderDocument()
-
-        }
+        val file = pdf.uri.toFile()
+        pdfRenderer = PrincipalPdfRenderer( file )
+        pdfName = file.name
+        pagesCount = pdfRenderer.pageCount()
+        _pdfPages.update { List<PdfPage>( pagesCount ){ PdfPage( bitmap = null, pageLoading = true, cachedBitmap = false) } }
+        renderDocument()
     }
 
     /**

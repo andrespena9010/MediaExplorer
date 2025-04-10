@@ -2,16 +2,12 @@ package com.exaple.mediaexplorer.data.models
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.core.net.toUri
 
 data class PDF (
     var fileName: String = "",
-    val url: String,
-    val uri: Uri? = null
-){
-    init {
-        fileName = url.split("/").last()
-    }
-}
+    var uri: Uri = "".toUri()
+)
 
 data class PdfPage(
     val bitmap: Bitmap?,
@@ -19,14 +15,14 @@ data class PdfPage(
     val cachedBitmap: Boolean
 )
 
-data class SavePDFResponse (
+data class SaveResource (
     var success: Boolean = false,
     var message: String = "",
     var uri: Uri? = null,
     val exceptions: MutableList<Throwable> = mutableListOf()
 )
 
-data class GetPDFResponse (
+data class GetResourceResponse (
     var success: Boolean = false,
     var message: String = "",
     var data: ByteArray = byteArrayOf(),
@@ -37,7 +33,7 @@ data class GetPDFResponse (
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as GetPDFResponse
+        other as GetResourceResponse
 
         return data.contentEquals(other.data)
     }
@@ -47,7 +43,7 @@ data class GetPDFResponse (
     }
 }
 
-data class SetUriResponse (
-    val getPDFResponse: GetPDFResponse,
-    val savePDFResponse: SavePDFResponse
+data class LoadResponse (
+    val getResourceResponse: GetResourceResponse = GetResourceResponse(),
+    val saveResource: SaveResource = SaveResource()
 )

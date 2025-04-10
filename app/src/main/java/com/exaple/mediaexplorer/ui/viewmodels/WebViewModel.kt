@@ -17,21 +17,18 @@ import kotlinx.coroutines.flow.update
 open class WebViewModelClass(): ViewModel(){
 
     private lateinit var webView: WebView
-    private lateinit var url: String
 
     private val _navigation = MutableStateFlow( false )
     val navigation: StateFlow<Boolean> = _navigation.asStateFlow()
 
-    fun setUrl(
-        url: String,
-        navigation: Boolean
-        ){
-        _navigation.update { navigation }
-        this.url = url
+    fun getWebView(): WebView {
+        return webView
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    fun go( context: Context ): WebView {
+    fun go( context: Context , url: String, navigation: Boolean) {
+
+        _navigation.update { navigation }
 
         webView = WebView( context )
 
@@ -77,8 +74,6 @@ open class WebViewModelClass(): ViewModel(){
         cookieManager.acceptThirdPartyCookies(webView)
 
         webView.loadUrl( url )
-
-        return webView
     }
 
 }

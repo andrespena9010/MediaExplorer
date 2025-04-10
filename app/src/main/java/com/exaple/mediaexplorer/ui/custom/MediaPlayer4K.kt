@@ -1,4 +1,4 @@
-package com.exaple.mediaexplorer.ui.views
+package com.exaple.mediaexplorer.ui.custom
 
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
@@ -16,7 +16,6 @@ import androidx.compose.ui.zIndex
 import androidx.media3.common.*
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
-import com.exaple.mediaexplorer.ui.custom.Controls
 import com.exaple.mediaexplorer.ui.viewmodels.ExoPlayerViewModel
 
 /**

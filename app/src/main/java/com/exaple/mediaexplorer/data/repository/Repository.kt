@@ -1,23 +1,23 @@
 package com.exaple.mediaexplorer.data.repository
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import com.exaple.mediaexplorer.data.local.LocalData
 import com.exaple.mediaexplorer.data.models.Forecast
-import com.exaple.mediaexplorer.data.models.GetPDFResponse
-import com.exaple.mediaexplorer.data.models.SavePDFResponse
-import com.exaple.mediaexplorer.data.models.SetUriResponse
+import com.exaple.mediaexplorer.data.models.GetResourceResponse
+import com.exaple.mediaexplorer.data.models.SaveResource
+import com.exaple.mediaexplorer.data.models.LoadResponse
 import com.exaple.mediaexplorer.data.remote.Okhttp3
 import com.exaple.mediaexplorer.data.remote.RetrofitProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
 import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.Locale
 
 /**
@@ -37,6 +37,10 @@ object Repository {
     private val local = LocalData
     private val weatherApiRetrofit = RetrofitProvider.getWeatherApiService()
 
+    fun init ( context: Context ){
+        local.setFilesDir( context.filesDir )
+    }
+
     suspend fun getForecastByCity( cityName: String, lang: Locale ): Forecast {
         return weatherApiRetrofit.getForecastByCity( cityName = cityName, lang = lang.language )
     }
@@ -48,34 +52,45 @@ object Repository {
      * @param fileName Nombre del archivo PDF a guardar.
      * @return Respuesta con el resultado de la operación.
      */
-    suspend fun downLoadDocument(url: String, fileName: String): SetUriResponse {
-        var getResponse = GetPDFResponse()
-        val deferredWeb = scope.async {
-            getResponse = web.getPDF(url)
-        }
-        deferredWeb.join()
-
-        var saveResponse = SavePDFResponse()
-        val deferredLocal = scope.async {
-            if (getResponse.success) {
-                saveResponse = local.savePDF(fileName, getResponse.data)
-                getResponse.data = byteArrayOf()
+    suspend fun downLoadResource( url: String, fileName: String ): LoadResponse {
+        if ( exist( fileName ) == null ){
+            var getResponse = GetResourceResponse()
+            val deferredWeb = scope.async {
+                getResponse = web.getResource(url)
             }
-        }
-        deferredLocal.join()
+            deferredWeb.join()
 
-        try {
-            deferredWeb.await()
-            deferredLocal.await()
-        } catch (e: Exception) {
-            val err = ""
-            withContext(Dispatchers.IO) {
-                e.printStackTrace(PrintWriter(err))
+            var saveResponse = SaveResource()
+            val deferredLocal = scope.async {
+                if (getResponse.success) {
+                    saveResponse = local.saveResource(fileName, getResponse.data)
+                    getResponse.data = byteArrayOf()
+                }
             }
-            Log.e("Repository.setUri() -> ", err)
-        }
+            deferredLocal.join()
 
-        return SetUriResponse(getPDFResponse = getResponse, savePDFResponse = saveResponse)
+            try {
+                deferredWeb.await()
+                deferredLocal.await()
+            } catch (e: Exception) {
+                val sw = StringWriter()
+                e.printStackTrace(PrintWriter(sw))
+                val errorStackTrace = sw.toString()
+                Log.e("Repository.setUri()", errorStackTrace)
+            }
+
+            return LoadResponse(getResourceResponse = getResponse, saveResource = saveResponse)
+        }
+        return LoadResponse(
+            getResourceResponse = GetResourceResponse(
+                success = true,
+                message = "the file is already exist"
+            ),
+            saveResource = SaveResource(
+                success = true,
+                message = "the file is already exist"
+            )
+        )
     }
 
     /**

@@ -3,7 +3,7 @@ package com.exaple.mediaexplorer.data.local
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import com.exaple.mediaexplorer.data.models.SavePDFResponse
+import com.exaple.mediaexplorer.data.models.SaveResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -21,7 +21,8 @@ import java.io.PrintStream
 object LocalData {
 
     private lateinit var filesDir: File
-    private lateinit var dir: File
+    private lateinit var resourcesDir: File
+    private lateinit var bitmapDir: File
 
     private val mutexMap = mutableMapOf<String, Mutex>()
 
@@ -32,50 +33,52 @@ object LocalData {
      */
     fun setFilesDir(filesDir: File) {
         this.filesDir = filesDir
-        dir = File(LocalData.filesDir, "pdf")
-        if (!dir.exists()) dir.mkdir()
+        resourcesDir = File(LocalData.filesDir, "resources")
+        bitmapDir = File(LocalData.filesDir, "bitmaps")
+        if (!resourcesDir.exists()) resourcesDir.mkdir()
+        if (!bitmapDir.exists()) bitmapDir.mkdir()
     }
 
     /**
      * Guarda un PDF en el almacenamiento local.
      *
      * @param name Nombre del archivo PDF.
-     * @param pdfData Datos del PDF en bytes.
+     * @param data Datos del PDF en bytes.
      * @return Respuesta con el resultado de la operación.
      */
-    suspend fun savePDF(
+    suspend fun saveResource(
         name: String,
-        pdfData: ByteArray
-    ): SavePDFResponse {
-        val response = SavePDFResponse()
-        val pdf = File(dir, name)
-        if (pdf.exists()) {
-            response.success = false
-            response.message = "The PDF is already exists."
-            response.uri = pdf.toUri()
+        data: ByteArray
+    ): SaveResource {
+        val res = SaveResource()
+        val resource = File(resourcesDir, name)
+        if (resource.exists()) {
+            res.success = false
+            res.message = "The Resource is already exists."
+            res.uri = resource.toUri()
         } else {
             withContext(Dispatchers.IO) {
                 try {
-                    if (pdf.createNewFile()) {
-                        pdf.writeBytes(pdfData)
-                        response.success = true
-                        response.message = "PDF created."
-                        response.uri = pdf.toUri()
+                    if (resource.createNewFile()) {
+                        resource.writeBytes(data)
+                        res.success = true
+                        res.message = "Resource created."
+                        res.uri = resource.toUri()
                     } else {
-                        response.success = false
-                        response.message = "Error creating the PDF."
+                        res.success = false
+                        res.message = "Error creating the Resource."
                     }
                 } catch (e: Exception) {
-                    response.success = false
-                    response.message = "Error"
-                    response.exceptions.add(e)
+                    res.success = false
+                    res.message = "Error"
+                    res.exceptions.add(e)
                     val err = ""
                     e.printStackTrace(PrintStream(err))
                     Log.e("LocalData.savePDF() -> ", err)
                 }
             }
         }
-        return response
+        return res
     }
 
     /**
@@ -85,7 +88,7 @@ object LocalData {
      * @return Uri del archivo si existe, null en caso contrario.
      */
     fun exist(fileName: String): Uri? {
-        val file = File(dir, fileName)
+        val file = File(resourcesDir, fileName)
         return if (file.exists()) file.toUri() else null
     }
 
@@ -97,7 +100,7 @@ object LocalData {
      */
     suspend fun saveCacheBitmap(bitmap: Bitmap, bitmapName: String) {
         mutexMap.getOrPut(bitmapName) { Mutex() }.withLock {
-            val file = File(dir, bitmapName)
+            val file = File(bitmapDir, bitmapName)
             var fileOutputStream: FileOutputStream? = null
             try {
                 fileOutputStream = FileOutputStream(file)
@@ -122,7 +125,7 @@ object LocalData {
      */
     suspend fun loadCacheBitmap(bitmapName: String): Bitmap? {
         mutexMap.getOrPut(bitmapName) { Mutex() }.withLock {
-            val file = File(dir, bitmapName)
+            val file = File(bitmapDir, bitmapName)
             return if (file.exists()) {
                 BitmapFactory.decodeFile(file.absolutePath)
             } else {

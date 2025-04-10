@@ -15,7 +15,7 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import com.exaple.mediaexplorer.ui.models.Language
-import com.exaple.mediaexplorer.ui.models.MediaItems
+import com.exaple.mediaexplorer.ui.models.MediaPlayerItems
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,8 +54,8 @@ open class ExoPlayerViewModelClass: ViewModel() {
     private lateinit var player: ExoPlayer
 
     // Flujos de estado para la UI (patrón MVI/MVVM)
-    private val _items = MutableStateFlow(MediaItems())
-    val items: StateFlow<MediaItems> = _items.asStateFlow()
+    private val _items = MutableStateFlow(MediaPlayerItems())
+    val items: StateFlow<MediaPlayerItems> = _items.asStateFlow()
 
     private val _currentPosition = MutableStateFlow(0L) // Posición actual en milisegundos
     val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
@@ -132,7 +132,6 @@ open class ExoPlayerViewModelClass: ViewModel() {
         player.setVideoTextureView(TextureView(context)) // Surface para renderizado
         player.setMediaItems(mediaItems) // Asignación de contenido
         player.prepare() // Precarga
-        player.playWhenReady = true // Auto-reproducción
 
         // Listener para cambios de estado del reproductor
         player.addListener(object : Player.Listener {
@@ -276,7 +275,7 @@ open class ExoPlayerViewModelClass: ViewModel() {
                 }
             }
         }
-        _items.update { MediaItems(audioList = audioLs) }
+        _items.update { MediaPlayerItems(audioList = audioLs) }
     }
 
     // Cambia la pista de audio (para multi-idioma)
