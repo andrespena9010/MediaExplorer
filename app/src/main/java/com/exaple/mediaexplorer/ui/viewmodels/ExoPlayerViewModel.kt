@@ -1,6 +1,7 @@
 package com.exaple.mediaexplorer.ui.viewmodels
 
 import android.content.Context
+import android.util.Size
 import android.view.TextureView
 import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
@@ -87,6 +89,9 @@ open class ExoPlayerViewModelClass: ViewModel() {
     private val _currentVolume = MutableStateFlow(0.7f) // Volumen actual (0-1)
     val currentVolume: StateFlow<Float> = _currentVolume.asStateFlow()
 
+    private var width: Int? = null
+    private var height: Int? = null
+
     /**
      *
      * Funcion para inicializar el viewmodel.
@@ -135,6 +140,12 @@ open class ExoPlayerViewModelClass: ViewModel() {
 
         // Listener para cambios de estado del reproductor
         player.addListener(object : Player.Listener {
+            override fun onTracksChanged(tracks: Tracks) {
+                val videoTrackGroup = tracks.groups.find { it.type == C.TRACK_TYPE_VIDEO }
+                val format = videoTrackGroup?.mediaTrackGroup?.getFormat(0)
+                width = format?.width
+                height = format?.height
+            }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 super.onPlaybackStateChanged(playbackState)
                 when (playbackState) {
@@ -318,6 +329,25 @@ open class ExoPlayerViewModelClass: ViewModel() {
         } else {
             player.volume = currentVolume.value
         }
+    }
+
+    fun getPlayer(): ExoPlayer {
+        return player
+    }
+
+    fun getSize( index: Int ): Size {
+        return if ( width != null && height != null ){
+            Size(
+                width!!,
+                height!!
+            )
+        } else {
+            Size( 0, 0 )
+        }
+    }
+
+    fun stop(){
+        player.stop()
     }
 }
 

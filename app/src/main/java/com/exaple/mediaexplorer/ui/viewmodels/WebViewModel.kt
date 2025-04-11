@@ -2,9 +2,11 @@ package com.exaple.mediaexplorer.ui.viewmodels
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT
 import android.webkit.WebViewClient
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +28,7 @@ open class WebViewModelClass(): ViewModel(){
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    fun go( context: Context , url: String, navigation: Boolean) {
+    fun go( context: Context , url: String, navigation: Boolean, onFinishPage: () -> Unit ) {
 
         _navigation.update { navigation }
 
@@ -35,6 +37,10 @@ open class WebViewModelClass(): ViewModel(){
         webView.clearCache(true)
 
         webView.webViewClient = object: WebViewClient(){
+            override fun onPageFinished(view: WebView?, url: String?) {
+                onFinishPage()
+                super.onPageFinished(view, url)
+            }
             override fun onLoadResource(view: WebView?, urlResource: String?) {
                 view?.evaluateJavascript(
                     """
@@ -73,7 +79,11 @@ open class WebViewModelClass(): ViewModel(){
         cookieManager.setAcceptCookie(true)
         cookieManager.acceptThirdPartyCookies(webView)
 
+        webView.setRendererPriorityPolicy(RENDERER_PRIORITY_IMPORTANT, true)
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
         webView.loadUrl( url )
+        webView.invalidate()
     }
 
 }

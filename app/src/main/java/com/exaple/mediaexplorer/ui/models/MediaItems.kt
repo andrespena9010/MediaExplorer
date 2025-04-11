@@ -1,6 +1,6 @@
 package com.exaple.mediaexplorer.ui.models
 
-import com.exaple.mediaexplorer.data.models.LoadResponse
+import android.graphics.Bitmap
 import com.exaple.mediaexplorer.ui.viewmodels.ExoPlayerViewModelClass
 import com.exaple.mediaexplorer.ui.viewmodels.PdfViewModelClass
 import com.exaple.mediaexplorer.ui.viewmodels.WeatherViewModelClass
@@ -15,23 +15,38 @@ open class MediaExplorerItem(
     val data: String = "",
     val type: MediaType,
     val duration: Long = 0L,
-    var downloadResponse: LoadResponse? = null,
-    var loaded: Boolean = false
+    var loaded: Boolean = false,
+    var active: Boolean = false
 )
 
 open class AudioMixType(
     var name: String = "",
     var type: MediaType = Type.None,
-    var data: String = "",
-    var downloadResponse: LoadResponse? = null
+    var data: String = ""
 ): MediaType
+
+open class ImageExplorerItem(
+    name: String,
+    data: String,
+    type: MediaType,
+    duration: Long,
+    var bitmap: Bitmap? = null
+): MediaExplorerItem(
+    name = name,
+    data = data,
+    type = type,
+    duration = duration
+)
 
 open class AudioExplorerItem(
     name: String,
     data: String,
     type: MediaType,
     duration: Long,
-    val viewModel: ExoPlayerViewModelClass = ExoPlayerViewModelClass()
+    val contentType: AudioMixType,
+    val viewModel: ExoPlayerViewModelClass = ExoPlayerViewModelClass(),
+    var bitmap: Bitmap? = null,
+    var byteArray: ByteArray? = null
 ): MediaExplorerItem(
     name = name,
     data = data,
@@ -97,7 +112,7 @@ sealed class Type {
     object None: MediaType
     object Image: MediaType
     object Gif: MediaType
-    object AudioMix: AudioMixType()
+    object AudioMix: MediaType
     object Audio: MediaType
     object Video: MediaType
     object Pdf: MediaType

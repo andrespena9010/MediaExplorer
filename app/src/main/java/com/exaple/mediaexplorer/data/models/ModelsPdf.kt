@@ -2,12 +2,6 @@ package com.exaple.mediaexplorer.data.models
 
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.core.net.toUri
-
-data class PDF (
-    var fileName: String = "",
-    var uri: Uri = "".toUri()
-)
 
 data class PdfPage(
     val bitmap: Bitmap?,

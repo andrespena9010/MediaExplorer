@@ -41,6 +41,7 @@ import com.exaple.mediaexplorer.ui.viewmodels.WeatherViewModel
 
 @Composable
 fun WeatherView(
+    modifier: Modifier,
     viewModel: WeatherViewModelClass = WeatherViewModel
 ) {
 
@@ -50,7 +51,7 @@ fun WeatherView(
     Box {
 
         Image(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize(),
             painter = painterResource( R.drawable.fondo ),
             contentDescription = "Fondo",

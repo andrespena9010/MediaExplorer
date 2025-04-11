@@ -6,12 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.exaple.mediaexplorer.ui.viewmodels.MediaExporerViewModel
-import com.exaple.mediaexplorer.ui.viewmodels.MediaExporerViewModelClass
+import com.exaple.mediaexplorer.ui.viewmodels.MediaExplorerViewModel
+import com.exaple.mediaexplorer.ui.viewmodels.MediaExplorerViewModelClass
 
 @Composable
 fun Options(
-    viewModel: MediaExporerViewModelClass = MediaExporerViewModel
+    viewModel: MediaExplorerViewModelClass = MediaExplorerViewModel
 ){
 
     Box(
