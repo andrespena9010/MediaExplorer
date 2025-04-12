@@ -10,101 +10,115 @@ data class Media(
     val items: List<MediaExplorerItem> = listOf()
 )
 
-open class MediaExplorerItem(
-    val name: String = "",
-    val data: String = "",
-    val type: MediaType,
-    val duration: Long = 0L,
-    var loaded: Boolean = false,
-    var active: Boolean = false
-)
+interface MediaExplorerItem {
+    val name: String
+    val data: String
+    val type: MediaType
+    val duration: Long
+    val active: Boolean
+}
+data class None (
+    override val name: String = "",
+    override val data: String = "",
+    override val type: MediaType = Type.None,
+    override val duration: Long = 0L,
+    override val active: Boolean = false
+): MediaExplorerItem
 
-open class AudioMixType(
+data class AudioMixType(
     var name: String = "",
     var type: MediaType = Type.None,
     var data: String = ""
 ): MediaType
 
-open class ImageExplorerItem(
-    name: String,
-    data: String,
-    type: MediaType,
-    duration: Long,
+data class ImageExplorerItem(
+    override val name: String = "",
+    override val data: String = "",
+    override val type: MediaType,
+    override val duration: Long = 0L,
+    override val active: Boolean = true,
     var bitmap: Bitmap? = null
-): MediaExplorerItem(
-    name = name,
-    data = data,
-    type = type,
-    duration = duration
-)
+): MediaExplorerItem
 
-open class AudioExplorerItem(
-    name: String,
-    data: String,
-    type: MediaType,
-    duration: Long,
+data class AudioExplorerItem(
+    override val name: String = "",
+    override val data: String = "",
+    override val type: MediaType,
+    override val duration: Long = 0L,
+    override val active: Boolean = true,
     val contentType: AudioMixType,
     val viewModel: ExoPlayerViewModelClass = ExoPlayerViewModelClass(),
     var bitmap: Bitmap? = null,
     var byteArray: ByteArray? = null
-): MediaExplorerItem(
-    name = name,
-    data = data,
-    type = type,
-    duration = duration
-)
+): MediaExplorerItem {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-open class VideoExplorerItem(
-    name: String,
-    data: String,
-    type: MediaType,
-    duration: Long,
+        other as AudioExplorerItem
+
+        if (duration != other.duration) return false
+        if (active != other.active) return false
+        if (name != other.name) return false
+        if (data != other.data) return false
+        if (type != other.type) return false
+        if (contentType != other.contentType) return false
+        if (viewModel != other.viewModel) return false
+        if (bitmap != other.bitmap) return false
+        if (!byteArray.contentEquals(other.byteArray)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = duration.hashCode()
+        result = 31 * result + active.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + data.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + contentType.hashCode()
+        result = 31 * result + viewModel.hashCode()
+        result = 31 * result + (bitmap?.hashCode() ?: 0)
+        result = 31 * result + (byteArray?.contentHashCode() ?: 0)
+        return result
+    }
+}
+
+data class VideoExplorerItem(
+    override val name: String = "",
+    override val data: String = "",
+    override val type: MediaType,
+    override val duration: Long = 0L,
+    override val active: Boolean = true,
     val viewModel: ExoPlayerViewModelClass = ExoPlayerViewModelClass()
-): MediaExplorerItem(
-    name = name,
-    data = data,
-    type = type,
-    duration = duration
-)
+): MediaExplorerItem
 
-open class PdfExplorerItem(
-    name: String,
-    data: String,
-    type: MediaType,
-    duration: Long,
+data class PdfExplorerItem(
+    override val name: String = "",
+    override val data: String = "",
+    override val type: MediaType,
+    override val duration: Long = 0L,
+    override val active: Boolean = true,
     val viewModel: PdfViewModelClass = PdfViewModelClass()
-): MediaExplorerItem(
-    name = name,
-    data = data,
-    type = type,
-    duration = duration
-)
+): MediaExplorerItem
 
-open class WebExplorerItem(
-    name: String,
-    data: String,
-    type: MediaType,
-    duration: Long,
+data class WebExplorerItem(
+    override val name: String = "",
+    override val data: String = "",
+    override val type: MediaType,
+    override val duration: Long = 0L,
+    override val active: Boolean = true,
     val viewModel: WebViewModelClass = WebViewModelClass()
-): MediaExplorerItem(
-    name = name,
-    data = data,
-    type = type,
-    duration = duration
-)
+): MediaExplorerItem
 
-open class WeatherExplorerItem(
-    name: String,
-    data: String,
-    type: MediaType,
-    duration: Long,
+data class WeatherExplorerItem(
+    override val name: String = "",
+    override val data: String = "",
+    override val type: MediaType,
+    override val duration: Long = 0L,
+    override val active: Boolean = true,
     val viewModel: WeatherViewModelClass = WeatherViewModelClass()
-): MediaExplorerItem(
-    name = name,
-    data = data,
-    type = type,
-    duration = duration
-)
+): MediaExplorerItem
 
 interface MediaType
 

@@ -19,13 +19,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import kotlin.properties.Delegates
 
 open class MediaExplorerViewModelClass: ViewModel() {
 
     private val repository = Repository
 
-    private val _selectedItem = MutableStateFlow( MediaExplorerItem( type = Type.None ) )
+    private val _selectedItem = MutableStateFlow<MediaExplorerItem>( None() )
     val selectedItem: StateFlow<MediaExplorerItem> = _selectedItem.asStateFlow()
 
     private val _items = MutableStateFlow( Media( items = ITEMS.asReversed() ) )
@@ -134,7 +135,6 @@ open class MediaExplorerViewModelClass: ViewModel() {
                             navigation = false,
                             onFinishPage = { itemCount-- }
                         )
-                        media.loaded = true
                     }
                 }
 
@@ -145,7 +145,6 @@ open class MediaExplorerViewModelClass: ViewModel() {
                             cityName = media.data,
                             onLoadFinish = { itemCount-- }
                         )
-                        media.loaded = true
                     }
                 }
 
@@ -159,21 +158,32 @@ open class MediaExplorerViewModelClass: ViewModel() {
         viewModelScope.launch {
             job?.cancel()
             job = CoroutineScope(Dispatchers.Default).launch {
-                items.value.items.forEach { media ->
+                for (index in items.value.items.indices.reversed()) {
+                    val media = items.value.items[index]
                     _selectedItem.update { media }
                     when ( media.type ){
 
                         Type.Image -> {
-                            delay(3000)
-                        }/*
+                            delay(5000)
+                            _items.update {
+                                val upItems = it.items.toMutableList()
+                                upItems[index] = ( it.items[index] as ImageExplorerItem ).copy( active = false )
+                                Media( items = upItems.toList() )
+                            }
+                        }
 
                         Type.AudioMix -> {
                             withContext ( Dispatchers.Main ){
                                 val audio = media as AudioExplorerItem
                                 audio.viewModel.play()
-                                delay(3000)
+                                delay(5000)
                                 audio.viewModel.pause()
                                 audio.viewModel.seekTo(0L)
+                            }
+                            _items.update {
+                                val upItems = it.items.toMutableList()
+                                upItems[index] = ( it.items[index] as AudioExplorerItem ).copy( active = false )
+                                Media( items = upItems.toList() )
                             }
                         }
 
@@ -185,45 +195,103 @@ open class MediaExplorerViewModelClass: ViewModel() {
                                 video.viewModel.pause()
                                 video.viewModel.seekTo(0L)
                             }
+                            _items.update {
+                                val upItems = it.items.toMutableList()
+                                upItems[index] = ( it.items[index] as VideoExplorerItem ).copy( active = false )
+                                Media( items = upItems.toList() )
+                            }
                         }
 
                         Type.Pdf -> {
-                            delay(3000)
+                            delay(5000)
+                            _items.update {
+                                val upItems = it.items.toMutableList()
+                                upItems[index] = ( it.items[index] as PdfExplorerItem ).copy( active = false )
+                                Media( items = upItems.toList() )
+                            }
                         }
 
                         Type.Web -> {
-                            delay(10000)
+                            delay(5000)
+                            _items.update {
+                                val upItems = it.items.toMutableList()
+                                upItems[index] = ( it.items[index] as WebExplorerItem ).copy( active = false )
+                                Media( items = upItems.toList() )
+                            }
                         }
 
                         Type.Weather -> {
-                            delay(3000)
-                        }*/
+                            delay(5000)
+                            _items.update {
+                                val upItems = it.items.toMutableList()
+                                upItems[index] = ( it.items[index] as WeatherExplorerItem ).copy( active = false )
+                                Media( items = upItems.toList() )
+                            }
+                        }
 
                     }
 
                 }
-                restart(MediaExplorerItem(type = Type.None))
+                restart()
             }
         }
     }
 
-    fun restart( selected: MediaExplorerItem ) {
-        when ( selected.type ){
-
-            Type.Video -> {
-                ( selected as VideoExplorerItem ).viewModel.pause()
-                selected.viewModel.seekTo(0)
-            }
-
-            Type.AudioMix -> {
-                ( selected as AudioExplorerItem ).viewModel.pause()
-                selected.viewModel.seekTo(0)
-            }
-
-        }
-        _selectedItem.update { MediaExplorerItem( type = Type.None ) }
+    fun restart() {
         job?.cancel()
-        // detener procesos de reproduccion
+        items.value.items.forEach { media ->
+            when ( media.type ){
+
+                Type.Video -> {
+                    viewModelScope.launch ( Dispatchers.Main ){
+                        ( media as VideoExplorerItem ).viewModel.pause()
+                        media.viewModel.seekTo(0)
+                    }
+                }
+
+                Type.AudioMix -> {
+                    viewModelScope.launch ( Dispatchers.Main ){
+                        ( media as AudioExplorerItem ).viewModel.pause()
+                        media.viewModel.seekTo(0)
+                    }
+                }
+
+            }
+        }
+
+        items.value.items.forEachIndexed { index,_ ->
+            _items.update {
+                val upItems = it.items.toMutableList()
+                upItems[index] = when ( upItems[index].type ) {
+
+                    Type.Image -> {
+                        ( upItems[index] as ImageExplorerItem ).copy( active = true )
+                    }
+                    Type.AudioMix -> {
+                        ( upItems[index] as AudioExplorerItem ).copy( active = true )
+                    }
+                    Type.Video -> {
+                        ( upItems[index] as VideoExplorerItem ).copy( active = true )
+                    }
+                    Type.Pdf -> {
+                        ( upItems[index] as PdfExplorerItem ).copy( active = true )
+                    }
+                    Type.Web -> {
+                        ( upItems[index] as WebExplorerItem ).copy( active = true )
+                    }
+                    Type.Weather -> {
+                        ( upItems[index] as WeatherExplorerItem ).copy( active = true )
+                    }
+
+                    else -> {
+                        None()
+                    }
+                }
+
+                Media( items = upItems.toList() )
+            }
+        }
+        _selectedItem.update { None() }
     }
 
 }
