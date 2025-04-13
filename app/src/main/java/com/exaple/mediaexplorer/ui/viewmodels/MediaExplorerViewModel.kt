@@ -29,11 +29,14 @@ open class MediaExplorerViewModelClass: ViewModel() {
     private val _selectedItem = MutableStateFlow<MediaExplorerItem>( None() )
     val selectedItem: StateFlow<MediaExplorerItem> = _selectedItem.asStateFlow()
 
-    private val _items = MutableStateFlow( Media( items = ITEMS.asReversed() ) )
-    val items: StateFlow<Media> = _items.asStateFlow()
+    private val _items = MutableStateFlow<List<MediaExplorerItem>>( ITEMS.asReversed() )
+    val items: StateFlow<List<MediaExplorerItem>> = _items.asStateFlow()
 
     private val _ready = MutableStateFlow( false )
     val ready: StateFlow<Boolean> = _ready.asStateFlow()
+
+    private val _transition = MutableStateFlow<TransitionEffect>( Transition.SlideToLeft )
+    val transition: StateFlow<TransitionEffect> = _transition.asStateFlow()
 
     private var itemCount: Int by Delegates.observable(initialValue = 0) { property, oldValue, newValue ->
         val value = newValue == 0
@@ -46,7 +49,7 @@ open class MediaExplorerViewModelClass: ViewModel() {
 
         repository.init( context )
 
-        items.value.items.forEach { media ->
+        items.value.forEach { media ->
 
             when ( media.type ){
 
@@ -158,17 +161,17 @@ open class MediaExplorerViewModelClass: ViewModel() {
         viewModelScope.launch {
             job?.cancel()
             job = CoroutineScope(Dispatchers.Default).launch {
-                for (index in items.value.items.indices.reversed()) {
-                    val media = items.value.items[index]
+                for (index in items.value.indices.reversed()) {
+                    val media = items.value[index]
                     _selectedItem.update { media }
                     when ( media.type ){
 
                         Type.Image -> {
-                            delay(5000)
+                            delay( media.duration )
                             _items.update {
-                                val upItems = it.items.toMutableList()
-                                upItems[index] = ( it.items[index] as ImageExplorerItem ).copy( active = false )
-                                Media( items = upItems.toList() )
+                                val upItems = it.toMutableList()
+                                upItems[index] = ( it[index] as ImageExplorerItem ).copy( active = false )
+                                upItems
                             }
                         }
 
@@ -176,14 +179,14 @@ open class MediaExplorerViewModelClass: ViewModel() {
                             withContext ( Dispatchers.Main ){
                                 val audio = media as AudioExplorerItem
                                 audio.viewModel.play()
-                                delay(5000)
+                                delay( media.duration )
                                 audio.viewModel.pause()
                                 audio.viewModel.seekTo(0L)
                             }
                             _items.update {
-                                val upItems = it.items.toMutableList()
-                                upItems[index] = ( it.items[index] as AudioExplorerItem ).copy( active = false )
-                                Media( items = upItems.toList() )
+                                val upItems = it.toMutableList()
+                                upItems[index] = ( it[index] as AudioExplorerItem ).copy( active = false )
+                                upItems
                             }
                         }
 
@@ -191,41 +194,41 @@ open class MediaExplorerViewModelClass: ViewModel() {
                             withContext ( Dispatchers.Main ){
                                 val video = media as VideoExplorerItem
                                 video.viewModel.play()
-                                delay(5000)
+                                delay( media.duration )
                                 video.viewModel.pause()
                                 video.viewModel.seekTo(0L)
                             }
                             _items.update {
-                                val upItems = it.items.toMutableList()
-                                upItems[index] = ( it.items[index] as VideoExplorerItem ).copy( active = false )
-                                Media( items = upItems.toList() )
+                                val upItems = it.toMutableList()
+                                upItems[index] = ( it[index] as VideoExplorerItem ).copy( active = false )
+                                upItems
                             }
                         }
 
                         Type.Pdf -> {
-                            delay(5000)
+                            delay( media.duration )
                             _items.update {
-                                val upItems = it.items.toMutableList()
-                                upItems[index] = ( it.items[index] as PdfExplorerItem ).copy( active = false )
-                                Media( items = upItems.toList() )
+                                val upItems = it.toMutableList()
+                                upItems[index] = ( it[index] as PdfExplorerItem ).copy( active = false )
+                                upItems
                             }
                         }
 
                         Type.Web -> {
-                            delay(5000)
+                            delay( media.duration )
                             _items.update {
-                                val upItems = it.items.toMutableList()
-                                upItems[index] = ( it.items[index] as WebExplorerItem ).copy( active = false )
-                                Media( items = upItems.toList() )
+                                val upItems = it.toMutableList()
+                                upItems[index] = ( it[index] as WebExplorerItem ).copy( active = false )
+                                upItems
                             }
                         }
 
                         Type.Weather -> {
-                            delay(5000)
+                            delay( media.duration )
                             _items.update {
-                                val upItems = it.items.toMutableList()
-                                upItems[index] = ( it.items[index] as WeatherExplorerItem ).copy( active = false )
-                                Media( items = upItems.toList() )
+                                val upItems = it.toMutableList()
+                                upItems[index] = ( it[index] as WeatherExplorerItem ).copy( active = false )
+                                upItems
                             }
                         }
 
@@ -239,7 +242,7 @@ open class MediaExplorerViewModelClass: ViewModel() {
 
     fun restart() {
         job?.cancel()
-        items.value.items.forEach { media ->
+        items.value.forEach { media ->
             when ( media.type ){
 
                 Type.Video -> {
@@ -259,9 +262,9 @@ open class MediaExplorerViewModelClass: ViewModel() {
             }
         }
 
-        items.value.items.forEachIndexed { index,_ ->
+        items.value.forEachIndexed { index,_ ->
             _items.update {
-                val upItems = it.items.toMutableList()
+                val upItems = it.toMutableList()
                 upItems[index] = when ( upItems[index].type ) {
 
                     Type.Image -> {
@@ -288,10 +291,16 @@ open class MediaExplorerViewModelClass: ViewModel() {
                     }
                 }
 
-                Media( items = upItems.toList() )
+                upItems
             }
         }
         _selectedItem.update { None() }
+    }
+
+    fun setTransition(
+        transition: TransitionEffect
+    ){
+        _transition.update { transition }
     }
 
 }

@@ -59,7 +59,7 @@ fun WeatherView(
         )
 
         Column (
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .background( Color( 0x88002255 ) )
         ){

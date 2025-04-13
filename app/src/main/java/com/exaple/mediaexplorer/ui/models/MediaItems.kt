@@ -6,10 +6,6 @@ import com.exaple.mediaexplorer.ui.viewmodels.PdfViewModelClass
 import com.exaple.mediaexplorer.ui.viewmodels.WeatherViewModelClass
 import com.exaple.mediaexplorer.ui.viewmodels.WebViewModelClass
 
-data class Media(
-    val items: List<MediaExplorerItem> = listOf()
-)
-
 interface MediaExplorerItem {
     val name: String
     val data: String
@@ -17,6 +13,7 @@ interface MediaExplorerItem {
     val duration: Long
     val active: Boolean
 }
+
 data class None (
     override val name: String = "",
     override val data: String = "",
@@ -132,4 +129,19 @@ sealed class Type {
     object Pdf: MediaType
     object Web: MediaType
     object Weather: MediaType
+}
+
+interface TransitionEffect
+
+open class Effect(
+    val label: String
+): TransitionEffect
+
+sealed class Transition {
+    object SlideToLeft: Effect( label = "SlideToLeft")
+    object SizeAtCenter: Effect( label = "SizeAtCenter")
+    object Blurred: Effect( label = "Blurred")
+    object LineExpanded: Effect( label = "LineExpanded")
+    object CircleAtCenter: Effect( label = "CircleAtCenter")
+    object Custom: Effect( label = "Custom")
 }
