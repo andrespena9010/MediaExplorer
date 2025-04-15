@@ -1,8 +1,10 @@
 package com.exaple.mediaexplorer.ui.viewmodels
 
 import android.util.Log
+import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil3.Bitmap
 import com.exaple.mediaexplorer.data.models.PdfPage
 import com.exaple.mediaexplorer.data.repository.Repository
 import com.exaple.mediaexplorer.ui.render.PrincipalPdfRenderer
@@ -63,9 +65,7 @@ open class PdfViewModelClass(
      *
      * @param pdf PDF a seleccionar.
      */
-    fun setSelectedPDF( pdf: File , minPages: Int, onGetMinPages: () -> Unit ) {
-        this.onGetMinPages = onGetMinPages
-        minPagesToRender = minPages
+    fun setSelectedPDF( pdf: File ) {
         selectedPDF = pdf
         _loading.update { true }
         pdfRenderer = PrincipalPdfRenderer( pdf )
@@ -75,6 +75,15 @@ open class PdfViewModelClass(
         viewModelScope.launch {
             renderDocument()
         }
+    }
+
+    fun getPage( index: Int ): Bitmap {
+        val bitmap = pdfPages.value[index].bitmap
+        return bitmap ?: createBitmap(200,200)
+    }
+
+    fun dispose(){
+        dropRamPage(0)
     }
 
     /**
@@ -126,7 +135,7 @@ open class PdfViewModelClass(
         pagesRendered = 0
 
         try {
-            for (pageIndex in 0..<pagesCount) {
+            for (pageIndex in 0..< 1) {
 
                 if ( pagesRendered == minPagesToRender ) onGetMinPages()
 

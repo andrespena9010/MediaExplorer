@@ -1,10 +1,15 @@
 package com.exaple.mediaexplorer.ui.models
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
+import androidx.core.graphics.createBitmap
+import androidx.media3.common.MediaItem
 import com.exaple.mediaexplorer.ui.viewmodels.ExoPlayerViewModelClass
 import com.exaple.mediaexplorer.ui.viewmodels.PdfViewModelClass
 import com.exaple.mediaexplorer.ui.viewmodels.WeatherViewModelClass
 import com.exaple.mediaexplorer.ui.viewmodels.WebViewModelClass
+import java.io.File
 
 interface MediaExplorerItem {
     val name: String
@@ -12,6 +17,42 @@ interface MediaExplorerItem {
     val type: MediaType
     val duration: Long
     val active: Boolean
+    var load: Boolean
+
+    fun load(
+        bitmap: Bitmap?
+    )
+
+    fun load(
+        weatherSearch: String
+    )
+
+    fun load(
+        file: File
+    )
+
+    fun load(
+        url: String,
+        context: Context
+    )
+
+    fun load(
+        uriMedia: Uri,
+        context: Context
+    )
+
+    fun load(
+        bitmap: Bitmap?,
+        uriMedia: Uri,
+        context: Context
+    )
+
+    fun load(
+        byteArray: ByteArray?,
+        uriMedia: Uri,
+        context: Context
+    )
+    fun dispose()
 }
 
 data class None (
@@ -19,8 +60,18 @@ data class None (
     override val data: String = "",
     override val type: MediaType = Type.None,
     override val duration: Long = 0L,
-    override val active: Boolean = false
-): MediaExplorerItem
+    override val active: Boolean = false,
+    override var load: Boolean = false
+): MediaExplorerItem {
+    override fun load(bitmap: Bitmap?) {}
+    override fun load(weatherSearch: String) {}
+    override fun load(file: File) {}
+    override fun load(url: String, context: Context) {}
+    override fun load(uriMedia: Uri, context: Context) {}
+    override fun load(bitmap: Bitmap?, uriMedia: Uri, context: Context) {}
+    override fun load(byteArray: ByteArray?, uriMedia: Uri, context: Context) {}
+    override fun dispose() {}
+}
 
 data class AudioMixType(
     var name: String = "",
@@ -33,20 +84,43 @@ data class ImageExplorerItem(
     override val data: String = "",
     override val type: MediaType,
     override val duration: Long = 0L,
-    override val active: Boolean = true,
-    var bitmap: Bitmap? = null
-): MediaExplorerItem
+    override val active: Boolean = false,
+    override var load: Boolean = false,
+    private var bitmap: Bitmap? = null
+): MediaExplorerItem {
+    override fun load(uriMedia: Uri, context: Context) {}
+    override fun load(bitmap: Bitmap?, uriMedia: Uri, context: Context) {}
+    override fun load(byteArray: ByteArray?, uriMedia: Uri, context: Context) {}
+    override fun load(weatherSearch: String) {}
+    override fun load(file: File) {}
+    override fun load(url: String, context: Context) {}
+
+    override fun load( bitmap: Bitmap? ) {
+        this.bitmap = bitmap
+        this.load = true
+    }
+
+    override fun dispose() {
+        this.load = false
+        this.bitmap = null
+    }
+
+    fun getSaveBitmap(): Bitmap {
+        return bitmap ?: createBitmap(200,200)
+    }
+}
 
 data class AudioExplorerItem(
     override val name: String = "",
     override val data: String = "",
     override val type: MediaType,
     override val duration: Long = 0L,
-    override val active: Boolean = true,
+    override val active: Boolean = false,
     val contentType: AudioMixType,
     val viewModel: ExoPlayerViewModelClass = ExoPlayerViewModelClass(),
     var bitmap: Bitmap? = null,
-    var byteArray: ByteArray? = null
+    var byteArray: ByteArray? = null,
+    override var load: Boolean = false
 ): MediaExplorerItem {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -79,6 +153,74 @@ data class AudioExplorerItem(
         result = 31 * result + (byteArray?.contentHashCode() ?: 0)
         return result
     }
+
+    override fun load(bitmap: Bitmap?) {}
+    override fun load(weatherSearch: String) {}
+    override fun load(file: File) {}
+    override fun load(url: String, context: Context) {}
+
+    override fun load(
+        uriMedia: Uri,
+        context: Context
+    ) {
+        this.viewModel.init(
+            mediaItems = listOf(
+                MediaItem.fromUri(
+                    uriMedia
+                )
+            ),
+            context = context,
+            duration = duration
+        )
+        this.load = true
+    }
+
+    override fun load(
+        bitmap: Bitmap?,
+        uriMedia: Uri,
+        context: Context
+    ) {
+        this.bitmap = bitmap
+        this.viewModel.init(
+            mediaItems = listOf(
+                MediaItem.fromUri(
+                    uriMedia
+                )
+            ),
+            context = context,
+            duration = duration
+        )
+        this.load = true
+    }
+
+    override fun load(
+        byteArray: ByteArray?,
+        uriMedia: Uri,
+        context: Context
+    ) {
+        this.byteArray = byteArray
+        this.viewModel.init(
+            mediaItems = listOf(
+                MediaItem.fromUri(
+                    uriMedia
+                )
+            ),
+            context = context,
+            duration = duration
+        )
+        this.load = true
+    }
+
+    override fun dispose() {
+        this.load = false
+        this.bitmap = null
+        this.byteArray = null
+        viewModel.dispose()
+    }
+
+    fun getSaveBitmap(): Bitmap {
+        return bitmap ?: createBitmap(200,200)
+    }
 }
 
 data class VideoExplorerItem(
@@ -86,36 +228,129 @@ data class VideoExplorerItem(
     override val data: String = "",
     override val type: MediaType,
     override val duration: Long = 0L,
-    override val active: Boolean = true,
-    val viewModel: ExoPlayerViewModelClass = ExoPlayerViewModelClass()
-): MediaExplorerItem
+    override val active: Boolean = false,
+    val viewModel: ExoPlayerViewModelClass = ExoPlayerViewModelClass(),
+    override var load: Boolean = false
+): MediaExplorerItem {
+    override fun load(bitmap: Bitmap?) {}
+    override fun load(weatherSearch: String) {}
+    override fun load(file: File) {}
+    override fun load(url: String, context: Context) {}
+    override fun load(bitmap: Bitmap?, uriMedia: Uri, context: Context) {}
+    override fun load(byteArray: ByteArray?, uriMedia: Uri, context: Context) {}
+
+    override fun load(
+        uriMedia: Uri,
+        context: Context
+    ) {
+        this.viewModel.init(
+            mediaItems = listOf(
+                MediaItem.fromUri(
+                    uriMedia
+                )
+            ),
+            context = context,
+            duration = duration
+        )
+        this.load = true
+    }
+
+    override fun dispose() {
+        this.load = false
+        this.viewModel.dispose()
+    }
+}
 
 data class PdfExplorerItem(
     override val name: String = "",
     override val data: String = "",
     override val type: MediaType,
     override val duration: Long = 0L,
-    override val active: Boolean = true,
-    val viewModel: PdfViewModelClass = PdfViewModelClass()
-): MediaExplorerItem
+    override val active: Boolean = false,
+    val viewModel: PdfViewModelClass = PdfViewModelClass(),
+    override var load: Boolean = false
+): MediaExplorerItem {
+    override fun load(bitmap: Bitmap?) {}
+    override fun load(weatherSearch: String) {}
+    override fun load(url: String, context: Context) {}
+    override fun load(uriMedia: Uri, context: Context) {}
+    override fun load(bitmap: Bitmap?, uriMedia: Uri, context: Context) {}
+    override fun load(byteArray: ByteArray?, uriMedia: Uri, context: Context) {}
+
+    override fun load(file: File) {
+        this.viewModel.setSelectedPDF(
+            pdf = file
+        )
+        this.load = true
+    }
+
+    override fun dispose() {
+        this.load = false
+        this.viewModel.dispose()
+    }
+}
 
 data class WebExplorerItem(
     override val name: String = "",
     override val data: String = "",
     override val type: MediaType,
     override val duration: Long = 0L,
-    override val active: Boolean = true,
-    val viewModel: WebViewModelClass = WebViewModelClass()
-): MediaExplorerItem
+    override val active: Boolean = false,
+    val viewModel: WebViewModelClass = WebViewModelClass(),
+    override var load: Boolean = false
+): MediaExplorerItem {
+    override fun load(bitmap: Bitmap?) {}
+    override fun load(weatherSearch: String) {}
+    override fun load(file: File) {}
+    override fun load(uriMedia: Uri, context: Context) {}
+    override fun load(bitmap: Bitmap?, uriMedia: Uri, context: Context) {}
+    override fun load(byteArray: ByteArray?, uriMedia: Uri, context: Context) {}
+
+    override fun load(
+        url: String,
+        context: Context
+    ) {
+        this.viewModel.go(
+            context = context,
+            url = url
+        )
+        this.load = true
+    }
+
+    override fun dispose() {
+        this.load = false
+        this.viewModel.dispose()
+    }
+}
 
 data class WeatherExplorerItem(
     override val name: String = "",
     override val data: String = "",
     override val type: MediaType,
     override val duration: Long = 0L,
-    override val active: Boolean = true,
-    val viewModel: WeatherViewModelClass = WeatherViewModelClass()
-): MediaExplorerItem
+    override val active: Boolean = false,
+    val viewModel: WeatherViewModelClass = WeatherViewModelClass(),
+    override var load: Boolean = false
+): MediaExplorerItem {
+    override fun load(bitmap: Bitmap?) {}
+    override fun load(file: File) {}
+    override fun load(url: String, context: Context) {}
+    override fun load(uriMedia: Uri, context: Context) {}
+    override fun load(bitmap: Bitmap?, uriMedia: Uri, context: Context) {}
+    override fun load(byteArray: ByteArray?, uriMedia: Uri, context: Context) {}
+
+    override fun load(
+        weatherSearch: String
+    ) {
+        this.viewModel.updateForecastByName( weatherSearch )
+        this.load = true
+    }
+
+    override fun dispose() {
+        this.load = false
+        this.viewModel.dispose()
+    }
+}
 
 interface MediaType
 
@@ -138,10 +373,10 @@ open class Effect(
 ): TransitionEffect
 
 sealed class Transition {
-    object SlideToLeft: Effect( label = "SlideToLeft")
-    object SizeAtCenter: Effect( label = "SizeAtCenter")
-    object Blurred: Effect( label = "Blurred")
-    object LineExpanded: Effect( label = "LineExpanded")
-    object CircleAtCenter: Effect( label = "CircleAtCenter")
-    object Custom: Effect( label = "Custom")
+    object SlideOutLeft: Effect( label = "SlideOutLeft")
+    object FadeScaleOut: Effect( label = "FadeScaleOut")
+    object FadeOut: Effect( label = "FadeOut")
+    object FadeLine: Effect( label = "FadeLine")
+    object FadeCircle: Effect( label = "FadeCircle")
+    object FadeCustom: Effect( label = "FadeCustom")
 }

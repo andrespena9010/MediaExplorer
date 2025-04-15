@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -49,13 +50,13 @@ fun Options(){
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
                 OptionItem (
-                    effect = Transition.SlideToLeft
+                    effect = Transition.SlideOutLeft
                 )
                 OptionItem (
-                    effect = Transition.SizeAtCenter
+                    effect = Transition.FadeScaleOut
                 )
                 OptionItem (
-                    effect = Transition.Blurred
+                    effect = Transition.FadeOut
                 )
             }
 
@@ -71,13 +72,13 @@ fun Options(){
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
                 OptionItem (
-                    effect = Transition.LineExpanded
+                    effect = Transition.FadeLine
                 )
                 OptionItem (
-                    effect = Transition.CircleAtCenter
+                    effect = Transition.FadeCircle
                 )
                 OptionItem (
-                    effect = Transition.Custom
+                    effect = Transition.FadeCustom
                 )
             }
         }
@@ -90,6 +91,8 @@ fun OptionItem(
     viewModel: MediaExplorerViewModelClass = MediaExplorerViewModel,
     effect: Effect
 ){
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .shadow(20.dp, RoundedCornerShape(20.dp))
@@ -99,7 +102,7 @@ fun OptionItem(
             .clickable(
                 onClick = {
                     viewModel.setTransition( effect )
-                    viewModel.start()
+                    viewModel.start( context )
                 }
             ),
         contentAlignment = Alignment.Center

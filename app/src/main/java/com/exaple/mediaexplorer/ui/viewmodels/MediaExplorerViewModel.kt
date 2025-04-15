@@ -3,7 +3,6 @@ package com.exaple.mediaexplorer.ui.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import com.exaple.mediaexplorer.ITEMS
 import com.exaple.mediaexplorer.data.repository.Repository
 import com.exaple.mediaexplorer.ui.models.*
@@ -17,153 +16,137 @@ import com.exaple.mediaexplorer.ui.models.WebExplorerItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import kotlin.properties.Delegates
 
 open class MediaExplorerViewModelClass: ViewModel() {
 
     private val repository = Repository
 
-    private val _selectedItem = MutableStateFlow<MediaExplorerItem>( None() )
-    val selectedItem: StateFlow<MediaExplorerItem> = _selectedItem.asStateFlow()
+    private val _selectedItem = MutableStateFlow( -1 )
+    val selectedItem: StateFlow<Int> = _selectedItem.asStateFlow()
 
-    private val _items = MutableStateFlow<List<MediaExplorerItem>>( ITEMS.asReversed() )
+    private val _items = MutableStateFlow<List<MediaExplorerItem>>( ITEMS )
     val items: StateFlow<List<MediaExplorerItem>> = _items.asStateFlow()
 
-    private val _ready = MutableStateFlow( false )
-    val ready: StateFlow<Boolean> = _ready.asStateFlow()
-
-    private val _transition = MutableStateFlow<TransitionEffect>( Transition.SlideToLeft )
+    private val _transition = MutableStateFlow<TransitionEffect>( Transition.SlideOutLeft )
     val transition: StateFlow<TransitionEffect> = _transition.asStateFlow()
 
-    private var itemCount: Int by Delegates.observable(initialValue = 0) { property, oldValue, newValue ->
-        val value = newValue == 0
-        if ( value ) _ready.update { true }
-    }
+    private val _transitionTime = MutableStateFlow( 2000 )
+    val transitionTime: StateFlow<Int> = _transitionTime.asStateFlow()
 
     private var job: Job? = null
 
     fun init( context: Context ) {
-
         repository.init( context )
+        loadMedia( 0, context )
+        loadMedia( 1, context )
+    }
 
-        items.value.forEach { media ->
+    fun loadMedia( index: Int, context: Context){
+        viewModelScope.launch {
+            _items.update {
+                val upItems = it.toMutableList()
+                upItems[index] = when ( upItems[index].type ) {
 
-            when ( media.type ){
-
-                Type.Image ->{
-                    viewModelScope.launch {
-                        val file = repository.getFile( media.name )
-                        if ( file != null ){
-                            itemCount++
-                            ( media as ImageExplorerItem ).bitmap = repository.loadBitmap( file )
-                            itemCount--
-                        }
+                    Type.Image -> {
+                        val image = ( upItems[index] as ImageExplorerItem )
+                        val file = repository.getFile( image.name )
+                        if ( file != null ) image.load( bitmap = repository.loadBitmap( file ) )
+                        image.copy( active = true )
                     }
-                }
 
-                Type.AudioMix -> {
-                    viewModelScope.launch {
-                        val mediaUri = repository.getFile( media.name )?.toUri()
-                        if ( mediaUri != null ){
-                            itemCount++
-                            val audio = media as AudioExplorerItem
-                            audio.viewModel.init(
-                                mediaItems = listOf(
-                                    MediaItem.fromUri(
-                                        mediaUri
-                                    )
-                                ),
-                                context = context
-                            )
+                    Type.AudioMix -> {
+                        val audio = ( upItems[index] as AudioExplorerItem )
+                        val audioUri = repository.getFile( audio.name )?.toUri()
+                        if ( audioUri != null ){
                             val mixType = audio.contentType
                             val contentFile = repository.getFile( mixType.name )
                             if ( contentFile != null ){
                                 when ( mixType.type ){
-
                                     Type.Image -> {
-                                        audio.bitmap = repository.loadBitmap( contentFile )
+                                        audio.load(
+                                            bitmap = repository.loadBitmap( contentFile ),
+                                            uriMedia = audioUri,
+                                            context = context
+                                        )
                                     }
-
                                     Type.Gif -> {
-                                        audio.byteArray = repository.loadDrawable( contentFile )
+                                        audio.load(
+                                            byteArray = repository.loadDrawable( contentFile ),
+                                            uriMedia = audioUri,
+                                            context = context
+                                        )
                                     }
                                 }
                             }
-                            itemCount--
                         }
+                        audio.copy( active = true )
                     }
-                }
 
-                Type.Video -> {
-                    viewModelScope.launch {
-                        val mediaUri = repository.getFile( media.name )?.toUri()
-                        if ( mediaUri != null ){
-                            itemCount++
-                            ( media as VideoExplorerItem ).viewModel.init(
-                                mediaItems = listOf(
-                                    MediaItem.fromUri(
-                                        mediaUri
-                                    )
-                                ),
+                    Type.Video -> {
+                        val video = ( upItems[index] as VideoExplorerItem )
+                        val videUri = repository.getFile( video.name )?.toUri()
+                        if ( videUri != null ){
+                            video.load(
+                                uriMedia = videUri,
                                 context = context
                             )
-                            itemCount--
                         }
+                        video.copy( active = true )
                     }
-                }
 
-                Type.Pdf -> {
-                    viewModelScope.launch {
-                        val file = repository.getFile( media.name )
-                        if ( file != null ){
-                            itemCount++
-                            ( media as PdfExplorerItem ).viewModel.setSelectedPDF(
-                                pdf = file,
-                                minPages = 10,
-                                onGetMinPages = { itemCount-- }
-                            )
-                        }
+                    Type.Pdf -> {
+                        val pdf = ( upItems[index] as PdfExplorerItem )
+                        val file = repository.getFile( pdf.name )
+                        if ( file != null ) pdf.load( file = file )
+                        pdf.copy( active = true )
                     }
-                }
 
-                Type.Web -> {
-                    viewModelScope.launch {
-                        itemCount++
-                        ( media as WebExplorerItem ).viewModel.go(
-                            context = context,
-                            url = media.data,
-                            navigation = false,
-                            onFinishPage = { itemCount-- }
+                    Type.Web -> {
+                        val web = ( upItems[index] as WebExplorerItem )
+                        web.load(
+                            url = web.data,
+                            context = context
                         )
+                        web.copy( active = true )
+                    }
+
+                    Type.Weather -> {
+                        val weather = ( upItems[index] as WeatherExplorerItem )
+                        weather.load( weatherSearch = weather.data )
+                        weather.copy( active = true )
+                    }
+
+                    else -> {
+                        upItems[index]
                     }
                 }
 
-                Type.Weather -> {
-                    viewModelScope.launch ( Dispatchers.IO ){
-                        itemCount++
-                        ( media as WeatherExplorerItem ).viewModel.updateForecastByName(
-                            cityName = media.data,
-                            onLoadFinish = { itemCount-- }
-                        )
-                    }
-                }
-
+                upItems
             }
-
         }
-
     }
 
-    fun start(){
+    fun disposeMedia( index: Int ){
+        viewModelScope.launch {
+            _items.update {
+                val upItems = it.toMutableList()
+                upItems[index].dispose()
+                upItems
+            }
+        }
+    }
+
+    fun start( context: Context ){
         viewModelScope.launch {
             job?.cancel()
-            job = CoroutineScope(Dispatchers.Default).launch {
-                for (index in items.value.indices.reversed()) {
-                    val media = items.value[index]
-                    _selectedItem.update { media }
+            job = CoroutineScope( Dispatchers.Default ).launch {
+                items.value.forEachIndexed { index, media ->
+                    _selectedItem.update { index }
+                    if ( index < items.value.size - 2 ) loadMedia( index + 2, context )
                     when ( media.type ){
 
                         Type.Image -> {
@@ -176,13 +159,15 @@ open class MediaExplorerViewModelClass: ViewModel() {
                         }
 
                         Type.AudioMix -> {
+                            val audio = media as AudioExplorerItem
                             withContext ( Dispatchers.Main ){
-                                val audio = media as AudioExplorerItem
                                 audio.viewModel.play()
-                                delay( media.duration )
-                                audio.viewModel.pause()
-                                audio.viewModel.seekTo(0L)
                             }
+                            delay( media.duration )
+                            withContext ( Dispatchers.Main ){
+                                audio.viewModel.pause()
+                            }
+                            delay(300)
                             _items.update {
                                 val upItems = it.toMutableList()
                                 upItems[index] = ( it[index] as AudioExplorerItem ).copy( active = false )
@@ -191,13 +176,15 @@ open class MediaExplorerViewModelClass: ViewModel() {
                         }
 
                         Type.Video -> {
+                            val video = media as VideoExplorerItem
                             withContext ( Dispatchers.Main ){
-                                val video = media as VideoExplorerItem
                                 video.viewModel.play()
-                                delay( media.duration )
-                                video.viewModel.pause()
-                                video.viewModel.seekTo(0L)
                             }
+                            delay( media.duration )
+                            withContext ( Dispatchers.Main ){
+                                video.viewModel.pause()
+                            }
+                            delay(300)
                             _items.update {
                                 val upItems = it.toMutableList()
                                 upItems[index] = ( it[index] as VideoExplorerItem ).copy( active = false )
@@ -233,68 +220,47 @@ open class MediaExplorerViewModelClass: ViewModel() {
                         }
 
                     }
-
+                    if ( index < items.value.size - 1 ) delay( transitionTime.value.toLong() - 300)
+                    disposeMedia( index )
+                    viewModelScope.async {
+                        delay(1000)
+                        Runtime.getRuntime().gc()
+                    }
                 }
-                restart()
+                restart( context )
             }
         }
     }
 
-    fun restart() {
+    fun restart( context: Context ) {
         job?.cancel()
-        items.value.forEach { media ->
-            when ( media.type ){
+        items.value.forEachIndexed { index, media ->
+            if ( media.load ){
+                when ( media.type ){
 
-                Type.Video -> {
-                    viewModelScope.launch ( Dispatchers.Main ){
-                        ( media as VideoExplorerItem ).viewModel.pause()
-                        media.viewModel.seekTo(0)
-                    }
-                }
-
-                Type.AudioMix -> {
-                    viewModelScope.launch ( Dispatchers.Main ){
-                        ( media as AudioExplorerItem ).viewModel.pause()
-                        media.viewModel.seekTo(0)
-                    }
-                }
-
-            }
-        }
-
-        items.value.forEachIndexed { index,_ ->
-            _items.update {
-                val upItems = it.toMutableList()
-                upItems[index] = when ( upItems[index].type ) {
-
-                    Type.Image -> {
-                        ( upItems[index] as ImageExplorerItem ).copy( active = true )
-                    }
-                    Type.AudioMix -> {
-                        ( upItems[index] as AudioExplorerItem ).copy( active = true )
-                    }
                     Type.Video -> {
-                        ( upItems[index] as VideoExplorerItem ).copy( active = true )
-                    }
-                    Type.Pdf -> {
-                        ( upItems[index] as PdfExplorerItem ).copy( active = true )
-                    }
-                    Type.Web -> {
-                        ( upItems[index] as WebExplorerItem ).copy( active = true )
-                    }
-                    Type.Weather -> {
-                        ( upItems[index] as WeatherExplorerItem ).copy( active = true )
+                        viewModelScope.launch ( Dispatchers.Main ){
+                            ( media as VideoExplorerItem ).viewModel.pause()
+                        }
                     }
 
-                    else -> {
-                        None()
+                    Type.AudioMix -> {
+                        viewModelScope.launch ( Dispatchers.Main ){
+                            ( media as AudioExplorerItem ).viewModel.pause()
+                        }
                     }
+
                 }
-
-                upItems
+                disposeMedia( index )
             }
         }
-        _selectedItem.update { None() }
+        loadMedia( 0, context )
+        loadMedia( 1, context )
+        _selectedItem.update { -1 }
+        viewModelScope.async {
+            delay(1000)
+            Runtime.getRuntime().gc()
+        }
     }
 
     fun setTransition(

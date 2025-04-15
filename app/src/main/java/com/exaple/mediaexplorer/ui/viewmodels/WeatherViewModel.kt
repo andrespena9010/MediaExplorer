@@ -21,7 +21,7 @@ open class WeatherViewModelClass (): ViewModel() {
     private var _forecast = MutableStateFlow(Forecast())
     var forecast: StateFlow<Forecast> = _forecast.asStateFlow()
 
-    fun updateForecastByName(cityName: String , onLoadFinish: () -> Unit ){
+    fun updateForecastByName( cityName: String ){
 
         viewModelScope.launch (Dispatchers.IO ){
 
@@ -54,16 +54,12 @@ open class WeatherViewModelClass (): ViewModel() {
                 )
             }
 
-            onLoadFinish()
-
         }
 
     }
 
-    fun test( forecast: Forecast){
-        _forecast.update {
-            forecast
-        }
+    fun dispose(){
+        _forecast.update { Forecast() }
     }
 
 }

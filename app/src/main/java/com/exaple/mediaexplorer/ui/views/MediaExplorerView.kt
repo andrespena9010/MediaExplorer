@@ -4,17 +4,13 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -22,7 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,7 +49,8 @@ fun MediaExplorer(
 
     val items by viewModel.items.collectAsStateWithLifecycle()
     val selectedItem by viewModel.selectedItem.collectAsStateWithLifecycle()
-    val ready by viewModel.ready.collectAsStateWithLifecycle()
+    val transTime by viewModel.transitionTime.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -61,41 +59,33 @@ fun MediaExplorer(
         contentAlignment = Alignment.Center
     ){
 
-        if ( !ready ){
-            Column (
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(5.dp)
-                )
-                Text("Loading media...")
-            }
-        } else {
+        if ( selectedItem == -1 ){
+            Options()
+        }
 
-            if ( selectedItem.type == Type.None){
-                Options()
-            }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit){
+                    detectTapGestures(
+                        onPress = {
+                            viewModel.restart( context )
+                        }
+                    )
+                }
+                .zIndex(1f)
+        )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit){
-                        detectTapGestures(
-                            onPress = {
-                                viewModel.restart()
-                            }
-                        )
-                    }
-                    .zIndex(101f)
-            )
+        BoxWithConstraints (
+            modifier = Modifier
+                .fillMaxSize()
+        ){
 
-            BoxWithConstraints (
-                modifier = Modifier
-                    .fillMaxSize()
-            ){
-                val transTime = 2000
-                items.forEachIndexed { index, item ->
+            items.forEachIndexed { ind, item ->
+
+                val index = 0 - ind
+
+                if ( item.load ){
 
                     when ( item.type ){
 
@@ -108,7 +98,7 @@ fun MediaExplorer(
                                 modifier = Modifier
                             ) { mod ->
                                 Image(
-                                    bitmap = ( item as ImageExplorerItem ).bitmap!!.asImageBitmap(),
+                                    bitmap = ( item as ImageExplorerItem ).getSaveBitmap().asImageBitmap(),
                                     contentDescription = item.name,
                                     modifier = mod
                                 )
@@ -130,7 +120,7 @@ fun MediaExplorer(
 
                                     Type.Image -> {
                                         Image(
-                                            bitmap = audioItem.bitmap!!.asImageBitmap(),
+                                            bitmap = audioItem.getSaveBitmap().asImageBitmap(),
                                             contentDescription = item.name,
                                             modifier = mod
                                                 .zIndex(0f)
@@ -152,11 +142,11 @@ fun MediaExplorer(
 
                         Type.Video -> {
                             val videoItem = ( item as VideoExplorerItem )
-                            val player = remember { videoItem.viewModel.getPlayer() }
-                            val size = videoItem.viewModel.getSize(0)
+                            val den = LocalDensity.current
+                            val size = videoItem.viewModel.getSize()
                             val modifier = Modifier
-                                .width(size.width.toFloat().dp)
-                                .height(size.height.toFloat().dp)
+                                .width( with ( den ){ size.width.toDp() } )
+                                .height( with ( den ){ size.height.toDp() } )
 
                             MediaContainer(
                                 item = item,
@@ -165,7 +155,7 @@ fun MediaExplorer(
                                 modifier = modifier
                             ) { mod ->
                                 PlayerSurface(
-                                    player = player,
+                                    player = videoItem.viewModel.getPlayer(),
                                     surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
                                     modifier = mod
                                         .zIndex(0f)
@@ -175,7 +165,6 @@ fun MediaExplorer(
 
                         Type.Pdf -> {
                             val pdfItem = ( item as PdfExplorerItem )
-                            val pages by pdfItem.viewModel.pdfPages.collectAsStateWithLifecycle()
                             MediaContainer(
                                 item = item,
                                 index = index,
@@ -183,7 +172,7 @@ fun MediaExplorer(
                                 modifier = Modifier
                             ) { mod ->
                                 Image(
-                                    bitmap = pages[0].bitmap!!.asImageBitmap(),
+                                    bitmap = pdfItem.viewModel.getPage(0).asImageBitmap(),
                                     contentDescription = item.name,
                                     modifier = mod
                                         .background(Color.White)

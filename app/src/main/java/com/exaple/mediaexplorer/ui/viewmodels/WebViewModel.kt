@@ -20,27 +20,18 @@ open class WebViewModelClass(): ViewModel(){
 
     private lateinit var webView: WebView
 
-    private val _navigation = MutableStateFlow( false )
-    val navigation: StateFlow<Boolean> = _navigation.asStateFlow()
-
     fun getWebView(): WebView {
         return webView
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    fun go( context: Context , url: String, navigation: Boolean, onFinishPage: () -> Unit ) {
-
-        _navigation.update { navigation }
+    fun go( context: Context , url: String ) {
 
         webView = WebView( context )
 
         webView.clearCache(true)
 
         webView.webViewClient = object: WebViewClient(){
-            override fun onPageFinished(view: WebView?, url: String?) {
-                onFinishPage()
-                super.onPageFinished(view, url)
-            }
             override fun onLoadResource(view: WebView?, urlResource: String?) {
                 view?.evaluateJavascript(
                     """
@@ -84,6 +75,15 @@ open class WebViewModelClass(): ViewModel(){
 
         webView.loadUrl( url )
         webView.invalidate()
+    }
+
+    fun dispose(){
+        webView.webViewClient = WebViewClient()
+        webView.webChromeClient = null
+        webView.stopLoading()
+        webView.clearHistory()
+        webView.removeAllViews()
+        webView.destroy()
     }
 
 }
