@@ -2,15 +2,6 @@ package com.exaple.mediaexplorer.data.models
 
 import com.google.gson.annotations.SerializedName
 
-data class ApiErrorResponse(
-    val error: ApiError = ApiError()
-)
-
-data class ApiError(
-    val code: Int = 0,
-    val message: String = ""
-)
-
 data class Forecast(
     val location: Location = Location(),
     val current: Current = Current(),
@@ -268,23 +259,4 @@ data class Alert(
     val expires: String = "",
     val desc: String = "",
     val instruction: String = ""
-)
-
-data class ConditionInfo(
-    val code: Int = 0,
-    val day: String = "",
-    val night: String = "",
-    val icon: Int = 0,
-    val languages: List<Language> = emptyList()
-)
-
-data class Language(
-    @SerializedName("lang_name")
-    val langName: String = "",
-    @SerializedName("lang_iso")
-    val langIso: String = "",
-    @SerializedName("day_text")
-    val dayText: String = "",
-    @SerializedName("night_text")
-    val nightText: String = ""
 )

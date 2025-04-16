@@ -72,13 +72,13 @@ fun Options(){
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
                 OptionItem (
-                    effect = Transition.FadeLine
+                    effect = Transition.FadeOutLine
                 )
                 OptionItem (
-                    effect = Transition.FadeCircle
+                    effect = Transition.FadeOutCircle
                 )
                 OptionItem (
-                    effect = Transition.FadeCustom
+                    effect = Transition.FadeOutCustom
                 )
             }
         }

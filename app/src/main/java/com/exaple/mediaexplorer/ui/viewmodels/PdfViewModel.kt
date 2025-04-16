@@ -41,12 +41,6 @@ open class PdfViewModelClass(
     private val _pdfPages = MutableStateFlow<List<PdfPage>>(listOf())
     val pdfPages: StateFlow<List<PdfPage>> = _pdfPages.asStateFlow()
 
-    /**
-     * Estado de carga general.
-     */
-    private val _loading = MutableStateFlow(true)
-    val loading: StateFlow<Boolean> = _loading.asStateFlow()
-
     private val loadThreadPool = Executors.newFixedThreadPool(2)
     private val renderThreadPool = Executors.newFixedThreadPool(20).asCoroutineDispatcher()
     private var renderStat = LocalTime.now()
@@ -61,13 +55,12 @@ open class PdfViewModelClass(
     /**
      * Establece el PDF seleccionado y guarda una copia.
      *
-     * Esta función actualiza el estado del PDF seleccionado y llama a [saveCopy] para guardar una copia del PDF.
+     * Esta función actualiza el estado del PDF seleccionado y llama a "" para guardar una copia del PDF.
      *
      * @param pdf PDF a seleccionar.
      */
     fun setSelectedPDF( pdf: File ) {
         selectedPDF = pdf
-        _loading.update { true }
         pdfRenderer = PrincipalPdfRenderer( pdf )
         pdfName = pdf.name
         pagesCount = pdfRenderer.pageCount()
@@ -83,43 +76,7 @@ open class PdfViewModelClass(
     }
 
     fun dispose(){
-        dropRamPage(0)
-    }
-
-    /**
-     * Carga un flujo de páginas del PDF.
-     *
-     * Esta función carga un rango de páginas del PDF alrededor del índice actual.
-     * Cancela cualquier trabajo de flujo existente antes de iniciar uno nuevo.
-     *
-     * @param currentIndex Índice de la página actual.
-     * @param nPages Número de páginas a cargar.
-     */
-    fun loadFlow(currentIndex: Int, nPages: Int) {
-
-        val less = (nPages / 2)
-        val plus = (nPages % 2) + (nPages / 2)
-        val rang = ((currentIndex - less)..(currentIndex + plus))
-
-        visibleRange = rang
-
-        viewModelScope.launch(Dispatchers.Default) {
-
-            if (rang.first - 1 >= 0) {
-                dropRamPage(rang.first - 1)
-            }
-
-            for (index in rang) {
-                if (index in 0..<pagesCount) {
-                    loadBitmap(index)
-                }
-            }
-
-            if (rang.last + 1 < pagesCount) {
-                dropRamPage(rang.last + 1)
-            }
-        }
-
+        dropRamPage()
     }
 
     /**
@@ -160,7 +117,6 @@ open class PdfViewModelClass(
                         pagesRendered++*/
 
                         if (pagesRendered == pagesCount) {
-                            _loading.update { true }
                             Log.i("TIMEPDF", "---- Termina renderizado TOTAL Tiempo total ---- : ${Duration.between(renderStat, LocalTime.now()).toMillis()} Milisegundos, pagina: $pagesCount")
                         }
 
@@ -214,12 +170,12 @@ open class PdfViewModelClass(
      *
      * Esta función establece el bitmap de una página específica a null para liberar memoria.
      *
-     * @param pageIndex Índice de la página a liberar.
+     *
      */
-    private fun dropRamPage(pageIndex: Int) {
+    private fun dropRamPage() {
         _pdfPages.update { current ->
             val list = current.toMutableList()
-            list[ pageIndex ] = list[ pageIndex ].copy( bitmap = null )
+            list[ 0 ] = list[ 0 ].copy( bitmap = null )
             list
         }
     }
@@ -262,8 +218,3 @@ open class PdfViewModelClass(
 
     }
 }
-
-/**
- * Objeto singleton para el ViewModel principal.
- */
-object PdfViewModel : PdfViewModelClass()

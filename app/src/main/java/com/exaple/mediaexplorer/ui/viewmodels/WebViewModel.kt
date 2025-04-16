@@ -9,10 +9,6 @@ import android.webkit.WebView
 import android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT
 import android.webkit.WebViewClient
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 
 @SuppressLint("StaticFieldLeak")
@@ -25,7 +21,7 @@ open class WebViewModelClass(): ViewModel(){
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    fun go( context: Context , url: String ) {
+    fun load(context: Context, url: String ) {
 
         webView = WebView( context )
 
@@ -87,6 +83,3 @@ open class WebViewModelClass(): ViewModel(){
     }
 
 }
-
-@SuppressLint("StaticFieldLeak")
-object WebViewModel: WebViewModelClass()

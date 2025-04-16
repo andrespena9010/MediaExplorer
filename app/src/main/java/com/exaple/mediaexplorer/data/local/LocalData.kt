@@ -45,17 +45,6 @@ object LocalData {
         }
     }
 
-    /**
-     * Verifica si un archivo PDF existe en el almacenamiento local.
-     *
-     * @param fileName Nombre del archivo PDF.
-     * @return Uri del archivo si existe, null en caso contrario.
-     */
-    fun exist(fileName: String): Uri? {
-        val file = File(resourcesDir, fileName)
-        return if (file.exists()) file.toUri() else null
-    }
-
     fun existBitmap(fileName: String): Uri? {
         val file = File(bitmapDir, fileName)
         return if (file.exists()) file.toUri() else null
@@ -113,7 +102,7 @@ object LocalData {
         }
     }
 
-    suspend fun loadDrawable( file: File ): ByteArray? {
+    suspend fun loadByteArray(file: File ): ByteArray? {
         mutexMap.getOrPut( file.name ) { Mutex() }.withLock {
             return if (file.exists()) {
                 file.readBytes()

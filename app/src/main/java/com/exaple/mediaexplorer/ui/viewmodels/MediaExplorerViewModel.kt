@@ -75,7 +75,7 @@ open class MediaExplorerViewModelClass: ViewModel() {
                                     }
                                     Type.Gif -> {
                                         audio.load(
-                                            byteArray = repository.loadDrawable( contentFile ),
+                                            byteArray = repository.loadByteArray( contentFile ),
                                             uriMedia = audioUri,
                                             context = context
                                         )

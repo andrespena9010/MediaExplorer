@@ -63,5 +63,3 @@ open class WeatherViewModelClass (): ViewModel() {
     }
 
 }
-
-object WeatherViewModel: WeatherViewModelClass()

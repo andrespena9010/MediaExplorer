@@ -146,7 +146,7 @@ fun BoxWithConstraintsScope.MediaContainer(
                 }
             }
 
-            Transition.FadeLine -> {
+            Transition.FadeOutLine -> {
                 AnimatedVisibility(
                     visible = item.active,
                     enter = EnterTransition.None,
@@ -171,7 +171,7 @@ fun BoxWithConstraintsScope.MediaContainer(
                 }
             }
 
-            Transition.FadeCircle -> {
+            Transition.FadeOutCircle -> {
                 AnimatedVisibility(
                     visible = item.active,
                     enter = EnterTransition.None,
@@ -196,7 +196,7 @@ fun BoxWithConstraintsScope.MediaContainer(
                 }
             }
 
-            Transition.FadeCustom -> {
+            Transition.FadeOutCustom -> {
                 AnimatedVisibility(
                     visible = item.active,
                     enter = EnterTransition.None,

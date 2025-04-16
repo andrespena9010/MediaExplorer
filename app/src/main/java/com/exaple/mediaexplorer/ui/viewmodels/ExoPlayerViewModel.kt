@@ -1,33 +1,15 @@
 package com.exaple.mediaexplorer.ui.viewmodels
 
 import android.content.Context
-import android.util.Size
-import android.view.TextureView
 import androidx.annotation.OptIn
 import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.common.TrackGroup
-import androidx.media3.common.TrackSelectionOverride
-import androidx.media3.common.Tracks
-import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import com.exaple.mediaexplorer.ui.models.Language
-import com.exaple.mediaexplorer.ui.models.MediaPlayerItems
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 /**
  *
@@ -128,6 +110,3 @@ open class ExoPlayerViewModelClass: ViewModel() {
         return size
     }
 }
-
-// Implementación singleton del ViewModel
-object ExoPlayerViewModel : ExoPlayerViewModelClass()

@@ -55,24 +55,6 @@ interface MediaExplorerItem {
     fun dispose()
 }
 
-data class None (
-    override val name: String = "",
-    override val data: String = "",
-    override val type: MediaType = Type.None,
-    override val duration: Long = 0L,
-    override val active: Boolean = false,
-    override var load: Boolean = false
-): MediaExplorerItem {
-    override fun load(bitmap: Bitmap?) {}
-    override fun load(weatherSearch: String) {}
-    override fun load(file: File) {}
-    override fun load(url: String, context: Context) {}
-    override fun load(uriMedia: Uri, context: Context) {}
-    override fun load(bitmap: Bitmap?, uriMedia: Uri, context: Context) {}
-    override fun load(byteArray: ByteArray?, uriMedia: Uri, context: Context) {}
-    override fun dispose() {}
-}
-
 data class AudioMixType(
     var name: String = "",
     var type: MediaType = Type.None,
@@ -310,7 +292,7 @@ data class WebExplorerItem(
         url: String,
         context: Context
     ) {
-        this.viewModel.go(
+        this.viewModel.load(
             context = context,
             url = url
         )
@@ -359,7 +341,6 @@ sealed class Type {
     object Image: MediaType
     object Gif: MediaType
     object AudioMix: MediaType
-    object Audio: MediaType
     object Video: MediaType
     object Pdf: MediaType
     object Web: MediaType
@@ -376,7 +357,7 @@ sealed class Transition {
     object SlideOutLeft: Effect( label = "SlideOutLeft")
     object FadeScaleOut: Effect( label = "FadeScaleOut")
     object FadeOut: Effect( label = "FadeOut")
-    object FadeLine: Effect( label = "FadeLine")
-    object FadeCircle: Effect( label = "FadeCircle")
-    object FadeCustom: Effect( label = "FadeCustom")
+    object FadeOutLine: Effect( label = "FadeLine")
+    object FadeOutCircle: Effect( label = "FadeCircle")
+    object FadeOutCustom: Effect( label = "FadeCustom")
 }

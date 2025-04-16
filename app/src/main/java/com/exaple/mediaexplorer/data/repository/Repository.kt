@@ -29,16 +29,6 @@ object Repository {
         return local.getFile( name )
     }
 
-    /**
-     * Verifica si un archivo PDF existe en el almacenamiento local.
-     *
-     * @param fileName Nombre del archivo PDF.
-     * @return Uri del archivo si existe, null en caso contrario.
-     */
-    fun exist(fileName: String): Uri? {
-        return local.exist(fileName)
-    }
-
     fun existBitmap(fileName: String): Uri? {
         return local.existBitmap(fileName)
     }
@@ -67,7 +57,7 @@ object Repository {
         return local.loadBitmap( file )
     }
 
-    suspend fun loadDrawable( file: File ): ByteArray? {
-        return local.loadDrawable( file )
+    suspend fun loadByteArray(file: File ): ByteArray? {
+        return local.loadByteArray( file )
     }
 }
