@@ -53,7 +53,7 @@ fun Options(){
                     effect = Transition.SlideOutLeft
                 )
                 OptionItem (
-                    effect = Transition.FadeScaleOut
+                    effect = Transition.ScaleOut
                 )
                 OptionItem (
                     effect = Transition.FadeOut
@@ -72,13 +72,13 @@ fun Options(){
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
                 OptionItem (
-                    effect = Transition.FadeOutLine
+                    effect = Transition.ShrinkOut
                 )
                 OptionItem (
-                    effect = Transition.FadeOutCircle
+                    effect = Transition.Custom1
                 )
                 OptionItem (
-                    effect = Transition.FadeOutCustom
+                    effect = Transition.Custom2
                 )
             }
         }

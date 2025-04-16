@@ -3,12 +3,14 @@ package com.exaple.mediaexplorer.ui.custom
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.EaseInCirc
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -28,7 +30,6 @@ import com.exaple.mediaexplorer.ui.models.MediaExplorerItem
 import com.exaple.mediaexplorer.ui.models.Transition
 import com.exaple.mediaexplorer.ui.shapes.DynamicCircleShape
 import com.exaple.mediaexplorer.ui.shapes.DynamicCustomShape
-import com.exaple.mediaexplorer.ui.shapes.DynamicDiagonalShape
 import com.exaple.mediaexplorer.ui.viewmodels.MediaExplorerViewModel
 import com.exaple.mediaexplorer.ui.viewmodels.MediaExplorerViewModelClass
 
@@ -47,14 +48,11 @@ fun BoxWithConstraintsScope.MediaContainer(
 
     val position by animateFloatAsState(
         targetValue = if ( item.active ) 1f else 0f,
-        animationSpec = if (item.active) snap() else tween(transTime),
+        animationSpec = if (item.active) snap() else tween( durationMillis = transTime, easing = LinearEasing ),
     )
 
     val circleShape = remember( position ) {
         DynamicCircleShape( position )
-    }
-    val diagonalShape = remember( position ) {
-        DynamicDiagonalShape( position )
     }
 
     val customShape = remember( position ) {
@@ -64,8 +62,7 @@ fun BoxWithConstraintsScope.MediaContainer(
     Box (
         modifier = Modifier
             .zIndex( index.toFloat() )
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
+            .fillMaxSize()
     ){
 
         when ( transition ){
@@ -76,8 +73,8 @@ fun BoxWithConstraintsScope.MediaContainer(
                     enter = EnterTransition.None,
                     exit = slideOutHorizontally(
                         targetOffsetX = { fullWidth -> -fullWidth },
-                        animationSpec = tween(durationMillis = transTime)
-                    ) + fadeOut(tween(transTime))
+                        animationSpec = tween( durationMillis = transTime, easing = EaseInCirc )
+                    )
                 ) {
                     Box(
                         modifier = Modifier
@@ -97,12 +94,11 @@ fun BoxWithConstraintsScope.MediaContainer(
                 }
             }
 
-            Transition.FadeScaleOut -> {
+            Transition.ScaleOut -> {
                 AnimatedVisibility(
                     visible = item.active,
                     enter = EnterTransition.None,
-                    exit = fadeOut(animationSpec = tween(transTime, easing = FastOutSlowInEasing)) +
-                            scaleOut(animationSpec = tween(transTime)),
+                    exit = scaleOut( animationSpec = tween(transTime, easing = EaseInCirc ) ),
                 ) {
                     Box(
                         modifier = Modifier
@@ -126,7 +122,7 @@ fun BoxWithConstraintsScope.MediaContainer(
                 AnimatedVisibility(
                     visible = item.active,
                     enter = EnterTransition.None,
-                    exit = fadeOut(animationSpec = tween(transTime, easing = FastOutSlowInEasing)),
+                    exit = fadeOut(animationSpec = tween(transTime, easing = EaseInCirc ) ),
                 ) {
                     Box(
                         modifier = Modifier
@@ -146,16 +142,18 @@ fun BoxWithConstraintsScope.MediaContainer(
                 }
             }
 
-            Transition.FadeOutLine -> {
+            Transition.ShrinkOut -> {
                 AnimatedVisibility(
                     visible = item.active,
                     enter = EnterTransition.None,
-                    exit = fadeOut(animationSpec = tween(transTime, easing = FastOutSlowInEasing)),
+                    exit = shrinkOut(
+                        animationSpec = tween( transTime, easing = EaseInCirc ),
+                        shrinkTowards = Alignment.TopStart
+                    ),
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clip( diagonalShape ),
+                            .fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ){
                         Box(
@@ -171,53 +169,41 @@ fun BoxWithConstraintsScope.MediaContainer(
                 }
             }
 
-            Transition.FadeOutCircle -> {
-                AnimatedVisibility(
-                    visible = item.active,
-                    enter = EnterTransition.None,
-                    exit = fadeOut(animationSpec = tween(transTime, easing = FastOutSlowInEasing)),
-                ) {
+            Transition.Custom1 -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip( circleShape ),
+                    contentAlignment = Alignment.Center
+                ){
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip( circleShape ),
-                        contentAlignment = Alignment.Center
-                    ){
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background( Color.Black )
-                        )
+                            .background( Color.Black )
+                    )
 
-                        content(
-                            modifier
-                        )
-                    }
+                    content(
+                        modifier
+                    )
                 }
             }
 
-            Transition.FadeOutCustom -> {
-                AnimatedVisibility(
-                    visible = item.active,
-                    enter = EnterTransition.None,
-                    exit = fadeOut(animationSpec = tween(transTime, easing = FastOutSlowInEasing)),
-                ) {
+            Transition.Custom2 -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip( customShape ),
+                    contentAlignment = Alignment.Center
+                ){
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip( customShape ),
-                        contentAlignment = Alignment.Center
-                    ){
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background( Color.Black )
-                        )
+                            .background( Color.Black )
+                    )
 
-                        content(
-                            modifier
-                        )
-                    }
+                    content(
+                        modifier
+                    )
                 }
             }
 

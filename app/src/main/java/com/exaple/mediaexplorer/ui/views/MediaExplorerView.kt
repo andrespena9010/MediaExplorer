@@ -50,6 +50,7 @@ fun MediaExplorer(
     val items by viewModel.items.collectAsStateWithLifecycle()
     val selectedItem by viewModel.selectedItem.collectAsStateWithLifecycle()
     val transTime by viewModel.transitionTime.collectAsStateWithLifecycle()
+    val inTransition by viewModel.inTransition.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     Box(
@@ -154,12 +155,20 @@ fun MediaExplorer(
                                 transTime = transTime,
                                 modifier = modifier
                             ) { mod ->
-                                PlayerSurface(
-                                    player = videoItem.viewModel.getPlayer(),
-                                    surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
-                                    modifier = mod
-                                        .zIndex(0f)
-                                )
+                                if ( inTransition ){
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black)
+                                    )
+                                } else {
+                                    PlayerSurface(
+                                        player = videoItem.viewModel.getPlayer(),
+                                        surfaceType = SURFACE_TYPE_TEXTURE_VIEW,
+                                        modifier = mod
+                                            .zIndex(0f)
+                                    )
+                                }
                             }
                         }
 

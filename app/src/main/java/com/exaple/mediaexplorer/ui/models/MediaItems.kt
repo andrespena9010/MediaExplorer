@@ -355,9 +355,9 @@ open class Effect(
 
 sealed class Transition {
     object SlideOutLeft: Effect( label = "SlideOutLeft")
-    object FadeScaleOut: Effect( label = "FadeScaleOut")
+    object ScaleOut: Effect( label = "ScaleOut")
     object FadeOut: Effect( label = "FadeOut")
-    object FadeOutLine: Effect( label = "FadeLine")
-    object FadeOutCircle: Effect( label = "FadeCircle")
-    object FadeOutCustom: Effect( label = "FadeCustom")
+    object ShrinkOut: Effect( label = "ShrinkOut")
+    object Custom1: Effect( label = "Custom1")
+    object Custom2: Effect( label = "Custom2")
 }

@@ -28,13 +28,16 @@ open class MediaExplorerViewModelClass: ViewModel() {
     private val _selectedItem = MutableStateFlow( -1 )
     val selectedItem: StateFlow<Int> = _selectedItem.asStateFlow()
 
+    private val _inTransition = MutableStateFlow( false )
+    val inTransition: StateFlow<Boolean> = _inTransition.asStateFlow()
+
     private val _items = MutableStateFlow<List<MediaExplorerItem>>( ITEMS )
     val items: StateFlow<List<MediaExplorerItem>> = _items.asStateFlow()
 
     private val _transition = MutableStateFlow<TransitionEffect>( Transition.SlideOutLeft )
     val transition: StateFlow<TransitionEffect> = _transition.asStateFlow()
 
-    private val _transitionTime = MutableStateFlow( 2000 )
+    private val _transitionTime = MutableStateFlow( 1500 )
     val transitionTime: StateFlow<Int> = _transitionTime.asStateFlow()
 
     private var job: Job? = null
@@ -147,6 +150,7 @@ open class MediaExplorerViewModelClass: ViewModel() {
                 items.value.forEachIndexed { index, media ->
                     _selectedItem.update { index }
                     if ( index < items.value.size - 2 ) loadMedia( index + 2, context )
+                    var trans = if ( index == items.value.size - 1 ) 0L else transitionTime.value.toLong()
                     when ( media.type ){
 
                         Type.Image -> {
@@ -167,7 +171,7 @@ open class MediaExplorerViewModelClass: ViewModel() {
                             withContext ( Dispatchers.Main ){
                                 audio.viewModel.pause()
                             }
-                            delay(300)
+                            delay(100)
                             _items.update {
                                 val upItems = it.toMutableList()
                                 upItems[index] = ( it[index] as AudioExplorerItem ).copy( active = false )
@@ -184,7 +188,7 @@ open class MediaExplorerViewModelClass: ViewModel() {
                             withContext ( Dispatchers.Main ){
                                 video.viewModel.pause()
                             }
-                            delay(300)
+                            delay(100)
                             _items.update {
                                 val upItems = it.toMutableList()
                                 upItems[index] = ( it[index] as VideoExplorerItem ).copy( active = false )
@@ -220,7 +224,9 @@ open class MediaExplorerViewModelClass: ViewModel() {
                         }
 
                     }
-                    if ( index < items.value.size - 1 ) delay( transitionTime.value.toLong() - 300)
+                    _inTransition.update { true }
+                    delay( trans )
+                    _inTransition.update { false }
                     disposeMedia( index )
                     viewModelScope.async {
                         delay(1000)
