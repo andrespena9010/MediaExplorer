@@ -34,7 +34,7 @@ open class WebViewModelClass(): ViewModel(){
                         (function() {
                             metaViewport = document.createElement('meta');
                             metaViewport.name = 'viewport';
-                            metaViewport.content = 'width=3840, height=2160';
+                            metaViewport.content = 'width=1920, height=1080';
                             document.head.appendChild(metaViewport);
                         })();
                         """.trimIndent(),

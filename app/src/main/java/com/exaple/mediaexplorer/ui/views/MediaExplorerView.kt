@@ -1,5 +1,6 @@
 package com.exaple.mediaexplorer.ui.views
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,16 +28,17 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import coil3.compose.AsyncImage
+import com.exaple.mediaexplorer.ui.custom.Controls
 import com.exaple.mediaexplorer.ui.custom.MediaContainer
 import com.exaple.mediaexplorer.ui.custom.Options
 import com.exaple.mediaexplorer.ui.custom.WeatherView
-import com.exaple.mediaexplorer.ui.models.AudioExplorerItem
-import com.exaple.mediaexplorer.ui.models.ImageExplorerItem
-import com.exaple.mediaexplorer.ui.models.PdfExplorerItem
+import com.exaple.mediaexplorer.ui.models.AudioItem
+import com.exaple.mediaexplorer.ui.models.ImageItem
+import com.exaple.mediaexplorer.ui.models.PdfItem
 import com.exaple.mediaexplorer.ui.models.Type
-import com.exaple.mediaexplorer.ui.models.VideoExplorerItem
-import com.exaple.mediaexplorer.ui.models.WeatherExplorerItem
-import com.exaple.mediaexplorer.ui.models.WebExplorerItem
+import com.exaple.mediaexplorer.ui.models.VideoItem
+import com.exaple.mediaexplorer.ui.models.WeatherItem
+import com.exaple.mediaexplorer.ui.models.WebItem
 import com.exaple.mediaexplorer.ui.viewmodels.MediaExplorerViewModel
 import com.exaple.mediaexplorer.ui.viewmodels.MediaExplorerViewModelClass
 
@@ -51,7 +53,12 @@ fun MediaExplorer(
     val selectedItem by viewModel.selectedItem.collectAsStateWithLifecycle()
     val transTime by viewModel.transitionTime.collectAsStateWithLifecycle()
     val inTransition by viewModel.inTransition.collectAsStateWithLifecycle()
+    val activeScreen by viewModel.activeScreen.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    BackHandler {
+        viewModel.restart( context )
+    }
 
     Box(
         modifier = Modifier
@@ -64,18 +71,18 @@ fun MediaExplorer(
             Options()
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit){
-                    detectTapGestures(
-                        onPress = {
-                            viewModel.restart( context )
-                        }
-                    )
-                }
-                .zIndex(1f)
-        )
+        if ( !activeScreen ){
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit){
+                        detectTapGestures(
+                            onPress = {}
+                        )
+                    }
+                    .zIndex(1f)
+            )
+        }
 
         BoxWithConstraints (
             modifier = Modifier
@@ -99,8 +106,8 @@ fun MediaExplorer(
                                 modifier = Modifier
                             ) { mod ->
                                 Image(
-                                    bitmap = ( item as ImageExplorerItem ).getSaveBitmap().asImageBitmap(),
-                                    contentDescription = item.name,
+                                    bitmap = ( item as ImageItem ).getSaveBitmap().asImageBitmap(),
+                                    contentDescription = item.uuid,
                                     modifier = mod
                                 )
                             }
@@ -109,7 +116,7 @@ fun MediaExplorer(
 
                         Type.AudioMix -> {
 
-                            val audioItem = ( item as AudioExplorerItem )
+                            val audioItem = ( item as AudioItem )
 
                             MediaContainer(
                                 item = item,
@@ -117,12 +124,19 @@ fun MediaExplorer(
                                 transTime = transTime,
                                 modifier = Modifier
                             ) { mod ->
+
+                                Controls(
+                                    viewModel = audioItem.viewModel,
+                                    modifier = mod
+                                        .zIndex(1f)
+                                )
+
                                 when ( audioItem.contentType.type ){
 
                                     Type.Image -> {
                                         Image(
                                             bitmap = audioItem.getSaveBitmap().asImageBitmap(),
-                                            contentDescription = item.name,
+                                            contentDescription = item.uuid,
                                             modifier = mod
                                                 .zIndex(0f)
                                         )
@@ -131,7 +145,7 @@ fun MediaExplorer(
                                     Type.Gif -> {
                                         AsyncImage(
                                             model = audioItem.byteArray,
-                                            contentDescription = audioItem.name,
+                                            contentDescription = audioItem.uuid,
                                             modifier = mod
                                                 .zIndex(0f)
                                         )
@@ -142,7 +156,8 @@ fun MediaExplorer(
                         }
 
                         Type.Video -> {
-                            val videoItem = ( item as VideoExplorerItem )
+
+                            val videoItem = ( item as VideoItem )
                             val den = LocalDensity.current
                             val size = videoItem.viewModel.getSize()
                             val modifier = Modifier
@@ -173,7 +188,9 @@ fun MediaExplorer(
                         }
 
                         Type.Pdf -> {
-                            val pdfItem = ( item as PdfExplorerItem )
+
+                            val pdfItem = ( item as PdfItem )
+
                             MediaContainer(
                                 item = item,
                                 index = index,
@@ -182,7 +199,7 @@ fun MediaExplorer(
                             ) { mod ->
                                 Image(
                                     bitmap = pdfItem.viewModel.getPage(0).asImageBitmap(),
-                                    contentDescription = item.name,
+                                    contentDescription = item.uuid,
                                     modifier = mod
                                         .background(Color.White)
                                         .zIndex(0f)
@@ -191,7 +208,9 @@ fun MediaExplorer(
                         }
 
                         Type.Web -> {
-                            val webView = ( item as WebExplorerItem ).viewModel.getWebView()
+
+                            val webView = ( item as WebItem ).viewModel.getWebView()
+
                             MediaContainer(
                                 item = item,
                                 index = index,
@@ -208,7 +227,9 @@ fun MediaExplorer(
                         }
 
                         Type.Weather -> {
-                            val weatherItem = ( item as WeatherExplorerItem )
+
+                            val weatherItem = ( item as WeatherItem )
+
                             MediaContainer(
                                 item = item,
                                 index = index,

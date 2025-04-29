@@ -3,85 +3,85 @@ package com.exaple.mediaexplorer
 import com.exaple.mediaexplorer.ui.models.*
 
 val ITEMS = listOf(
-    WeatherExplorerItem(
-        name = "",
+    Media(
+        uuid = "",
         data = "Bogota",
         type = Type.Weather,
         duration = 10000L
     ),
-    VideoExplorerItem(
-        name = "video1.mp4",
-        data = "https://drive.google.com/uc?export=download&id=1yDbyMdedPDgipYAUN_Xm1ygucbhp5RXt",
-        type = Type.Video,
-        duration = 10000L
-    ),
-    PdfExplorerItem(
-        name = "example1.pdf",
-        data = "https://drive.google.com/uc?export=download&id=1qmbycEfkiLbQvn6N80aeifqOfM2IheBd",
-        type = Type.Pdf,
-        duration = 10000L
-    ),
-    ImageExplorerItem(
-        name = "image1.png",
-        data = "https://drive.google.com/uc?export=download&id=1hEOmZutQjMuyCcHkfpjfbJqPagVELARB",
-        type = Type.Image,
-        duration = 10000L
-    ),
-    WebExplorerItem(
-        name = "Orbys",
-        data = "https://orbys.eu/",
-        type = Type.Web,
-        duration = 10000L
-    ),
-    AudioExplorerItem(
-        name = "audio.m4a",
-        data = "https://drive.google.com/uc?export=download&id=19UxIkSdVZgVJXHxT7oGJc-e6ZB3LB8Yd",
-        type = Type.AudioMix,
-        contentType = AudioMixType(
-            name = "gif",
-            type = Type.Gif,
-            data = "https://drive.google.com/uc?export=download&id=1z3mitzi_WUZBOiUVTvzWBxfN4qHBH7Hy"
-        ),
-        duration = 10000L
-    ),
-    WeatherExplorerItem(
-        name = "Castellon",
-        data = "39.9833, -0.0333",
-        type = Type.Weather,
-        duration = 10000L
-    ),
-    VideoExplorerItem(
-        name = "video2.mp4",
+    Media(
+        uuid = "09bd474a-7998-4fbe-a2e6-1a7bc18b4c1b",
         data = "",
         type = Type.Video,
         duration = 10000L
     ),
-    PdfExplorerItem(
-        name = "example2.pdf",
-        data = "https://drive.google.com/uc?export=download&id=1kpwWze7zh9iifstFBgmWD125up3MXKAt",
+    Media(
+        uuid = "2d2959aa-ec54-40a9-84f0-2107a2d3035e",
+        data = "",
         type = Type.Pdf,
         duration = 10000L
     ),
-    ImageExplorerItem(
-        name = "image2.jpg",
-        data = "https://drive.google.com/uc?export=download&id=1RLISAIZeLCAxww3LIX9VJvRkv_iowcqS",
+    Media(
+        uuid = "b3d33741-b92f-4bfb-9b1a-58ee6ac15738",
+        data = "",
         type = Type.Image,
         duration = 10000L
     ),
-    WebExplorerItem(
-        name = "Movistar",
+    Media(
+        uuid = "",
+        data = "https://orbys.eu/",
+        type = Type.Web,
+        duration = 10000L
+    ),
+    Media(
+        uuid = "e81c55b5-6fd6-4b38-a8b3-bb6b8101dc15",
+        data = "",
+        type = Type.AudioMix,
+        contentType = AudioMixType(
+            uuid = "0d407001-bd96-4b86-bc8c-6444702d5054",
+            type = Type.Gif,
+            data = ""
+        ),
+        duration = 10000L
+    ),
+    Media(
+        uuid = "",
+        data = "39.9833, -0.0333",
+        type = Type.Weather,
+        duration = 10000L
+    ),
+    Media(
+        uuid = "4ff6e6d7-9bb5-43ab-90df-545a48b408f1",
+        data = "",
+        type = Type.Video,
+        duration = 10000L
+    ),
+    Media(
+        uuid = "0d9b5e64-3e3b-4e5f-9dc8-91debb97e237",
+        data = "",
+        type = Type.Pdf,
+        duration = 10000L
+    ),
+    Media(
+        uuid = "b16bb519-391b-4e11-9ec6-5e15ef372dc2",
+        data = "",
+        type = Type.Image,
+        duration = 10000L
+    ),
+    Media(
+        uuid = "",
         data = "https://www.movistarplus.es/el-partido-movistarplus?utm_source=havas0x0digitalpaid0x0unieditorial0x0marca&utm_medium=cf&utm_campaign=ott&utm_content=x0x0generica0x0dis0x0dir0x0bnr0x0pcc&utm_creative_format=FUTBOL&dclid=CLTjjMTy2YwDFWFIHQkdKtk3JA&gad_source=7",
         type = Type.Web,
         duration = 10000L
     ),
-    AudioExplorerItem(
-        name = "audio.m4a",
-        data = "https://drive.google.com/uc?export=download&id=19UxIkSdVZgVJXHxT7oGJc-e6ZB3LB8Yd",
+    Media(
+        uuid = "e81c55b5-6fd6-4b38-a8b3-bb6b8101dc15",
+        data = "",
         type = Type.AudioMix,
         contentType = AudioMixType(
-            name = "image3.png",
+            uuid = "6a77b5ee-0c02-4a44-9182-c2e2b37ad431",
             type = Type.Image,
-            data = "https://drive.google.com/uc?export=download&id=1cpuRm3Kbok3AjLps4YQl-cbUjYwZcV0H"
+            data = ""
         ),
         duration = 10000L
     )

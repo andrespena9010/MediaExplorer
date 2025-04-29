@@ -25,7 +25,7 @@ open class WeatherViewModelClass (): ViewModel() {
 
         viewModelScope.launch (Dispatchers.IO ){
 
-            _forecast.update {
+            /*_forecast.update {
                 val new = repository.getForecastByCity( cityName, lang ) // Implementar errores
                 new.copy(
                     current = new.current.copy(
@@ -52,7 +52,7 @@ open class WeatherViewModelClass (): ViewModel() {
                         }
                     )
                 )
-            }
+            }*/
 
         }
 
